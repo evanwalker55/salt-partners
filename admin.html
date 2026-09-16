@@ -12,7 +12,8 @@
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:'Open Sans',sans-serif; background:var(--bg); color:var(--ink); }
   .wrap { max-width:720px; margin:0 auto; padding:20px; }
-  .top { background:var(--navy); color:#fff; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
+  .top { background:#8ad4f3; color:var(--navy); padding:12px 20px; display:flex; align-items:center; justify-content:flex-start; }
+  .top button { border-color:rgba(19,49,78,.35) !important; color:var(--navy) !important; }
   .top b { font-size:15px; font-family:'Bungee',sans-serif; font-weight:400; letter-spacing:.5px; } .top span { font-size:12px; opacity:.7; display:block; }
   .top button { background:none; border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer; }
   .card { background:#fff; border-radius:16px; box-shadow:var(--shadow); padding:20px; margin-bottom:16px; }
@@ -43,7 +44,7 @@
 </style>
 </head>
 <body>
-<div class="top"><div><b>Salt Partners — Admin</b><span>bounty payouts &amp; referral feed</span></div><button onclick="localStorage.removeItem('sp_admin_key');location.reload()">Lock</button></div>
+<div class="top"><img src="logos/simplysalt.png" alt="" style="height:40px;margin-right:10px"><div><b>Salt Partners — Admin</b><span>bounty payouts &amp; referral feed</span></div><button onclick="localStorage.removeItem('sp_admin_key');location.reload()" style="margin-left:auto">Lock</button></div>
 <div class="wrap">
 
   <div class="card" id="keyCard" style="display:none">

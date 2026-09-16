@@ -1,4 +1,4 @@
-const CACHE = "salt-partners-v1";
+const CACHE = "salt-partners-v2";
 self.addEventListener("install", e => { self.skipWaiting(); });
 self.addEventListener("activate", e => { e.waitUntil(clients.claim()); });
 // network-first so updates land instantly; cache is the offline fallback for the shell
