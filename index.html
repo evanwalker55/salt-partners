@@ -416,6 +416,13 @@ $("checkBtn").onclick = async () => {
 
 function renderSlots(options) {
   const list = $("satList"); list.innerHTML = "";
+  // Abode signs up non-urgent customers -> ideal route Saturday first (API order).
+  // Plumbing partners' customers just got a softener installed and need salt
+  // soon -> soonest Saturday first, route day still badged IDEAL.
+  const prof = store.get();
+  if (!prof || prof.partner_id !== "abode") {
+    options = options.slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+  }
   options.forEach(o => {
     const sat = document.createElement("div");
     sat.className = "sat" + (o.ideal === true ? " ideal-day" : "");
