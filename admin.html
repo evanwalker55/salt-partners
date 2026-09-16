@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Salt Partners — Admin</title>
+<style>
+  :root { --navy:#122b45; --teal:#1f7a6d; --teal-dark:#175c52; --bg:#f2f5f8; --ink:#1a2432; --muted:#64748b; --line:#e2e8f0; --ok:#2e7d4f; --cash:#16a34a; --shadow:0 10px 30px rgba(15,30,50,.08); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+  .wrap { max-width:720px; margin:0 auto; padding:20px; }
+  .top { background:var(--navy); color:#fff; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
+  .top b { font-size:16px; } .top span { font-size:12px; opacity:.7; display:block; }
+  .top button { background:none; border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer; }
+  .card { background:#fff; border-radius:16px; box-shadow:var(--shadow); padding:20px; margin-bottom:16px; }
+  h2 { font-size:16px; margin-bottom:12px; }
+  input { width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:10px; font-size:15px; font-family:inherit; }
+  .btn { padding:12px 18px; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:10px; }
+  .btn-primary { background:var(--teal); color:#fff; }
+  .btn-pay { background:var(--cash); color:#fff; padding:8px 14px; margin:0; font-size:13px; }
+  .btn-done { background:#e6e9ee; color:var(--ink); padding:8px 14px; margin:0 0 0 8px; font-size:13px; }
+  .statrow { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .stat { flex:1; min-width:130px; background:#fff; border-radius:14px; box-shadow:var(--shadow); padding:14px 16px; }
+  .stat .k { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .stat .v { font-size:24px; font-weight:800; margin-top:2px; }
+  .tech { border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .tech .hd { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  .tech .nm { font-weight:800; font-size:15px; }
+  .tech .pm { font-size:12.5px; color:var(--muted); }
+  .tech .owe { font-size:20px; font-weight:800; color:var(--cash); }
+  .item { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-top:1px solid var(--line); font-size:13px; gap:8px; flex-wrap:wrap; }
+  .muted { color:var(--muted); }
+  .empty { text-align:center; color:var(--muted); padding:24px; font-size:14px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; font-size:11px; text-transform:uppercase; color:var(--muted); padding:8px 6px; border-bottom:1.5px solid var(--line); }
+  td { padding:9px 6px; border-bottom:1px solid var(--line); }
+  .pill { font-size:10px; font-weight:800; padding:3px 9px; border-radius:20px; text-transform:uppercase; }
+  .pill.booked { background:#dbeafe; color:#1d5fa8; } .pill.payable { background:#dcfce7; color:#15803d; } .pill.paid { background:#e6e9ee; color:var(--muted); }
+  .mini { font-size:11.5px; padding:5px 10px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; font-family:inherit; }
+</style>
+</head>
+<body>
+<div class="top"><div><b>Salt Partners — Admin</b><span>bounty payouts &amp; referral feed</span></div><button onclick="localStorage.removeItem('sp_admin_key');location.reload()">Lock</button></div>
+<div class="wrap">
+
+  <div class="card" id="keyCard" style="display:none">
+    <h2>Admin key</h2>
+    <input id="keyInput" type="password" placeholder="sk_admin_...">
+    <button class="btn btn-primary" onclick="saveKey()">Unlock</button>
+  </div>
+
+  <div id="dash" style="display:none">
+    <div class="statrow" id="stats"></div>
+    <div class="card"><h2>💵 Payouts owed</h2><div id="payouts"><div class="empty">Loading…</div></div></div>
+    <div class="card"><h2>All referrals</h2><div id="refs"><div class="empty">Loading…</div></div></div>
+    <div class="card"><h2>Registered techs</h2><div id="techs"><div class="empty">Loading…</div></div></div>
+  </div>
+</div>
+
+<script>
+const BASE = "https://primary-production-5c84.up.railway.app/webhook";
+const $ = id => document.getElementById(id);
+let KEY = localStorage.getItem("sp_admin_key") || "";
+
+function saveKey() { KEY = $("keyInput").value.trim(); localStorage.setItem("sp_admin_key", KEY); boot(); }
+
+async function api(action, extra) {
+  const res = await fetch(`${BASE}/partner_admin`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(Object.assign({ admin_key: KEY, action }, extra || {}))
+  });
+  const d = await res.json();
+  if (!res.ok || d.error) throw new Error(d.error || "failed");
+  return d;
+}
+
+function payLink(t) {
+  if (t.payout_method === "venmo" && t.payout_handle)
+    return `https://venmo.com/${encodeURIComponent(t.payout_handle.replace(/^@/, ""))}?txn=pay&amount=${t.owed}&note=Simply%20Salt%20referral%20bounty`;
+  return null;
+}
+function copy(text) { navigator.clipboard.writeText(text); }
+
+async function boot() {
+  if (!KEY) { $("keyCard").style.display = "block"; $("dash").style.display = "none"; return; }
+  try {
+    const [ov, po] = [await api("overview"), await api("payouts")];
+    $("keyCard").style.display = "none"; $("dash").style.display = "block";
+
+    $("stats").innerHTML =
+      `<div class="stat"><div class="k">Owed now</div><div class="v" style="color:var(--cash)">$${po.total_owed}</div></div>` +
+      `<div class="stat"><div class="k">Techs</div><div class="v">${ov.totals.techs}</div></div>` +
+      `<div class="stat"><div class="k">Pending refs</div><div class="v">${ov.totals.booked}</div></div>` +
+      `<div class="stat"><div class="k">Paid lifetime</div><div class="v">$${ov.totals.paid}</div></div>`;
+
+    const p = $("payouts");
+    if (!po.payouts.length) p.innerHTML = `<div class="empty">Nobody's owed anything right now. 🧂</div>`;
+    else {
+      p.innerHTML = "";
+      po.payouts.forEach(t => {
+        const d = document.createElement("div"); d.className = "tech";
+        const link = payLink(t);
+        d.innerHTML = `<div class="hd"><div><div class="nm">${t.tech_name} <span class="muted" style="font-weight:400">· ${t.partner || ""}</span></div>` +
+          `<div class="pm">${t.payout_method || "?"} → <b>${t.payout_handle || "no handle on file"}</b> <button class="mini" onclick="copy('${(t.payout_handle || "").replace(/'/g, "")}')">copy</button></div></div>` +
+          `<div style="display:flex;align-items:center"><span class="owe">$${t.owed}</span>` +
+          (link ? `<a href="${link}" target="_blank" style="margin-left:10px"><button class="btn btn-pay">Pay in Venmo</button></a>` : "") + `</div></div>`;
+        t.items.forEach(i => {
+          const row = document.createElement("div"); row.className = "item";
+          row.innerHTML = `<span>${i.customer_name} <span class="muted">· delivered ${i.scheduled_date}</span></span>` +
+            `<span>$${i.bounty} <button class="btn btn-done" onclick="markPaid('${i.job_id}')">Mark paid</button></span>`;
+          d.appendChild(row);
+        });
+        p.appendChild(d);
+      });
+    }
+
+    const r = $("refs");
+    if (!ov.referrals.length) r.innerHTML = `<div class="empty">No referrals yet.</div>`;
+    else r.innerHTML = `<table><tr><th>Customer</th><th>Tech</th><th>Partner</th><th>Delivery</th><th>Status</th><th></th></tr>` +
+      ov.referrals.map(x => `<tr><td>${x.customer_name}</td><td>${x.tech_name}</td><td>${x.partner}</td><td>${x.scheduled_date}</td>` +
+        `<td><span class="pill ${x.status}">${x.status}</span></td>` +
+        `<td>${x.status === "booked" ? `<button class="mini" onclick="markPayable('${x.job_id}')">delivered ✓</button>` : ""}</td></tr>`).join("") + `</table>`;
+
+    const tt = $("techs");
+    if (!ov.techs.length) tt.innerHTML = `<div class="empty">No techs registered yet.</div>`;
+    else tt.innerHTML = `<table><tr><th>Name</th><th>Partner</th><th>Phone</th><th>Payout</th></tr>` +
+      ov.techs.map(t => `<tr><td>${t.tech_name}</td><td>${t.partner}</td><td>${t.phone}</td><td>${t.payout_method} · ${t.payout_handle}</td></tr>`).join("") + `</table>`;
+  } catch (e) {
+    localStorage.removeItem("sp_admin_key"); KEY = "";
+    $("keyCard").style.display = "block"; $("dash").style.display = "none";
+  }
+}
+async function markPaid(jobId) { await api("mark_paid", { job_id: jobId }); boot(); }
+async function markPayable(jobId) { await api("mark_payable", { job_id: jobId }); boot(); }
+boot();
+</script>
+</body>
+</html>
