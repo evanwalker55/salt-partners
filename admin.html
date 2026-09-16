@@ -6,12 +6,14 @@
 <meta name="robots" content="noindex">
 <title>Salt Partners — Admin</title>
 <style>
-  :root { --navy:#122b45; --teal:#1f7a6d; --teal-dark:#175c52; --bg:#f2f5f8; --ink:#1a2432; --muted:#64748b; --line:#e2e8f0; --ok:#2e7d4f; --cash:#16a34a; --shadow:0 10px 30px rgba(15,30,50,.08); }
+  @font-face { font-family: 'Bungee'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/bungee.woff2) format('woff2'); }
+  @font-face { font-family: 'Open Sans'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/opensans.woff2) format('woff2'); }
+  :root { --navy:#13314e; --teal:#2f8fcb; --teal-dark:#24729f; --bg:#f6f3ec; --ink:#1b2a3a; --muted:#5d6b7a; --line:#dfeaf2; --ok:#2e7d4f; --cash:#16a34a; --yellow:#f5b301; --shadow:0 10px 30px rgba(19,49,78,.08); }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+  body { font-family:'Open Sans',sans-serif; background:var(--bg); color:var(--ink); }
   .wrap { max-width:720px; margin:0 auto; padding:20px; }
   .top { background:var(--navy); color:#fff; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
-  .top b { font-size:16px; } .top span { font-size:12px; opacity:.7; display:block; }
+  .top b { font-size:15px; font-family:'Bungee',sans-serif; font-weight:400; letter-spacing:.5px; } .top span { font-size:12px; opacity:.7; display:block; }
   .top button { background:none; border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer; }
   .card { background:#fff; border-radius:16px; box-shadow:var(--shadow); padding:20px; margin-bottom:16px; }
   h2 { font-size:16px; margin-bottom:12px; }
