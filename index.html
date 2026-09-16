@@ -46,6 +46,8 @@
   .co { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 18px 14px; text-align: center; cursor: pointer; transition: all .15s; }
   .co:active { transform: scale(.97); }
   .co .av { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 10px; color: #fff; font-weight: 800; font-size: 18px; letter-spacing: .5px; }
+  .co .lgwrap { height: 58px; display: grid; place-items: center; margin-bottom: 10px; }
+  .co .lg { max-height: 58px; max-width: 100%; object-fit: contain; }
   .co b { display: block; font-size: 14px; line-height: 1.25; }
   .co span { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
   .co.more { border-style: dashed; color: var(--muted); display: grid; place-items: center; font-size: 13px; font-weight: 600; min-height: 118px; }
@@ -276,10 +278,10 @@
 const BASE = "https://primary-production-5c84.up.railway.app/webhook";
 const APP_KEY = "sk_app_saltpartners_2026";
 const PARTNERS = [
-  { id: "peterman",    name: "Peterman Brothers",    tag: "Heating · Cooling · Plumbing", color: "#b3402a" },
-  { id: "adobe",       name: "Adobe Home Concierge", tag: "Whole-home care",              color: "#8a5a2b" },
-  { id: "prime",       name: "Prime Plumbing",       tag: "Plumbing",                     color: "#1d5fa8" },
-  { id: "simplywater", name: "Simply Water",         tag: "Water treatment",              color: "#1f7a6d" }
+  { id: "peterman",    name: "Peterman Brothers",       tag: "Heating · Cooling · Plumbing", color: "#b3402a", logo: "logos/peterman.png" },
+  { id: "abode",       name: "Abode Home Concierge",    tag: "Whole-home care",              color: "#3d5a3a", logo: "logos/abode.png" },
+  { id: "prime",       name: "Prime Plumbing & Drains", tag: "Plumbing",                     color: "#1d5fa8", logo: "logos/prime.png" },
+  { id: "simplywater", name: "Simply Water",            tag: "Water treatment",              color: "#1f7a6d", logo: "logos/simplywater.png" }
 ];
 /* ================================================================== */
 
@@ -324,7 +326,10 @@ const grid = $("coGrid");
 PARTNERS.forEach(c => {
   const d = document.createElement("div");
   d.className = "co";
-  d.innerHTML = `<div class="av" style="background:${c.color}">${initials(c.name)}</div><b>${c.name}</b><span>${c.tag}</span>`;
+  d.innerHTML = (c.logo
+    ? `<div class="lgwrap"><img class="lg" src="${c.logo}" alt="${c.name} logo"></div>`
+    : `<div class="av" style="background:${c.color}">${initials(c.name)}</div>`) +
+    `<b>${c.name}</b><span>${c.tag}</span>`;
   d.onclick = () => { pickedPartner = c; $("signupSub").textContent = `${c.name} · your $25 hits after each completed delivery.`; show("signup"); };
   grid.appendChild(d);
 });
