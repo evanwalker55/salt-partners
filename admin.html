@@ -64,6 +64,7 @@
 <script>
 const BASE = "https://primary-production-5c84.up.railway.app/webhook";
 const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let KEY = localStorage.getItem("sp_admin_key") || "";
 
 function saveKey() { KEY = $("keyInput").value.trim(); localStorage.setItem("sp_admin_key", KEY); boot(); }
@@ -104,14 +105,14 @@ async function boot() {
       po.payouts.forEach(t => {
         const d = document.createElement("div"); d.className = "tech";
         const link = payLink(t);
-        d.innerHTML = `<div class="hd"><div><div class="nm">${t.tech_name} <span class="muted" style="font-weight:400">· ${t.partner || ""}</span></div>` +
-          `<div class="pm">${t.payout_method || "?"} → <b>${t.payout_handle || "no handle on file"}</b> <button class="mini" onclick="copy('${(t.payout_handle || "").replace(/'/g, "")}')">copy</button></div></div>` +
-          `<div style="display:flex;align-items:center"><span class="owe">$${t.owed}</span>` +
-          (link ? `<a href="${link}" target="_blank" style="margin-left:10px"><button class="btn btn-pay">Pay in Venmo</button></a>` : "") + `</div></div>`;
+        d.innerHTML = `<div class="hd"><div><div class="nm">${esc(t.tech_name)} <span class="muted" style="font-weight:400">· ${esc(t.partner || "")}</span></div>` +
+          `<div class="pm">${esc(t.payout_method || "?")} → <b>${esc(t.payout_handle || "no handle on file")}</b> <button class="mini" data-copy="${esc(t.payout_handle || "")}">copy</button></div></div>` +
+          `<div style="display:flex;align-items:center"><span class="owe">$${Number(t.owed) || 0}</span>` +
+          (link ? `<a href="${esc(link)}" target="_blank" rel="noopener" style="margin-left:10px"><button class="btn btn-pay">Pay in Venmo</button></a>` : "") + `</div></div>`;
         t.items.forEach(i => {
           const row = document.createElement("div"); row.className = "item";
-          row.innerHTML = `<span>${i.customer_name} <span class="muted">· delivered ${i.scheduled_date}</span></span>` +
-            `<span>$${i.bounty} <button class="btn btn-done" onclick="markPaid('${i.job_id}')">Mark paid</button></span>`;
+          row.innerHTML = `<span>${esc(i.customer_name)} <span class="muted">· delivered ${esc(i.scheduled_date)}</span></span>` +
+            `<span>$${Number(i.bounty) || 25} <button class="btn btn-done" data-paid="${esc(i.job_id)}">Mark paid</button></span>`;
           d.appendChild(row);
         });
         p.appendChild(d);
@@ -121,14 +122,14 @@ async function boot() {
     const r = $("refs");
     if (!ov.referrals.length) r.innerHTML = `<div class="empty">No referrals yet.</div>`;
     else r.innerHTML = `<table><tr><th>Customer</th><th>Tech</th><th>Partner</th><th>Delivery</th><th>Status</th><th></th></tr>` +
-      ov.referrals.map(x => `<tr><td>${x.customer_name}</td><td>${x.tech_name}</td><td>${x.partner}</td><td>${x.scheduled_date}</td>` +
-        `<td><span class="pill ${x.status}">${x.status}</span></td>` +
-        `<td>${x.status === "booked" ? `<button class="mini" onclick="markPayable('${x.job_id}')">delivered ✓</button>` : ""}</td></tr>`).join("") + `</table>`;
+      ov.referrals.map(x => `<tr><td>${esc(x.customer_name)}</td><td>${esc(x.tech_name)}</td><td>${esc(x.partner)}</td><td>${esc(x.scheduled_date)}</td>` +
+        `<td><span class="pill ${esc(x.status)}">${esc(x.status)}</span></td>` +
+        `<td>${x.status === "booked" ? `<button class="mini" data-payable="${esc(x.job_id)}">delivered ✓</button>` : ""}</td></tr>`).join("") + `</table>`;
 
     const tt = $("techs");
     if (!ov.techs.length) tt.innerHTML = `<div class="empty">No techs registered yet.</div>`;
     else tt.innerHTML = `<table><tr><th>Name</th><th>Partner</th><th>Phone</th><th>Payout</th></tr>` +
-      ov.techs.map(t => `<tr><td>${t.tech_name}</td><td>${t.partner}</td><td>${t.phone}</td><td>${t.payout_method} · ${t.payout_handle}</td></tr>`).join("") + `</table>`;
+      ov.techs.map(t => `<tr><td>${esc(t.tech_name)}</td><td>${esc(t.partner)}</td><td>${esc(t.phone)}</td><td>${esc(t.payout_method)} · ${esc(t.payout_handle)}</td></tr>`).join("") + `</table>`;
   } catch (e) {
     localStorage.removeItem("sp_admin_key"); KEY = "";
     $("keyCard").style.display = "block"; $("dash").style.display = "none";
@@ -136,6 +137,13 @@ async function boot() {
 }
 async function markPaid(jobId) { await api("mark_paid", { job_id: jobId }); boot(); }
 async function markPayable(jobId) { await api("mark_payable", { job_id: jobId }); boot(); }
+document.addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.copy !== undefined) copy(b.dataset.copy);
+  else if (b.dataset.paid) markPaid(b.dataset.paid);
+  else if (b.dataset.payable) markPayable(b.dataset.payable);
+});
 boot();
 </script>
 </body>

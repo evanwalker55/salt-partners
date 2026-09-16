@@ -309,6 +309,7 @@ const PARTNERS = [
 /* ================================================================== */
 
 const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const store = {
   get: () => { try { return JSON.parse(localStorage.getItem("sp_profile")) } catch (e) { return null } },
   set: p => localStorage.setItem("sp_profile", JSON.stringify(p)),
@@ -337,7 +338,7 @@ function show(view) {
   $("tabs").classList.toggle("on", inApp);
   document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.v === view));
   const p = store.get();
-  $("whoBox").innerHTML = p ? `${p.tech_name}<br>${p.partner_name}` : "";
+  $("whoBox").innerHTML = p ? `${esc(p.tech_name)}<br>${esc(p.partner_name)}` : "";
   if (view === "money") loadMoney();
   window.scrollTo(0, 0);
 }
@@ -381,10 +382,14 @@ $("signupBtn").onclick = async () => {
   }
   $("spinS").style.display = "inline-block"; $("signupLbl").textContent = "Saving…"; $("signupBtn").disabled = true;
   try {
-    await api("partner_register_tech", { partner: pickedPartner.name, tech_name: name, phone, payout_method: payMethod, payout_handle: handle });
-    store.set({ partner_id: pickedPartner.id, partner_name: pickedPartner.name, tech_name: name, phone, payout_method: payMethod, payout_handle: handle });
+    const prev = store.get();
+    const d = await api("partner_register_tech", { partner: pickedPartner.name, tech_name: name, phone, payout_method: payMethod, payout_handle: handle, token: prev ? prev.token : "" });
+    store.set({ partner_id: pickedPartner.id, partner_name: pickedPartner.name, tech_name: name, phone, payout_method: payMethod, payout_handle: handle, token: d.token });
     show("refer");
-  } catch (e) { $("errS").textContent = e.message; $("errS").style.display = "block"; }
+  } catch (e) {
+    $("errS").textContent = /phone_taken/.test(e.message) ? "That phone number is already registered on another device. If it's yours, text Evan · (317) 969-0174 to reset it." : e.message;
+    $("errS").style.display = "block";
+  }
   $("spinS").style.display = "none"; $("signupLbl").textContent = "Start earning"; $("signupBtn").disabled = false;
 };
 
@@ -429,14 +434,14 @@ function renderSlots(options) {
     const badge = o.ideal === true ? `<span class="rbadge ideal">★ IDEAL</span>` : o.ideal === false ? `<span class="rbadge">BACKUP</span>` : "";
     const head = document.createElement("div");
     head.className = "sat-head";
-    head.innerHTML = `<div><span class="d">${o.date_readable}</span>${badge}` + (o.route_note ? `<div class="rnote">${o.route_note}</div>` : "") + `</div><span class="s">${o.stops} ${o.stops === 1 ? "stop" : "stops"}</span>`;
+    head.innerHTML = `<div><span class="d">${esc(o.date_readable)}</span>${badge}` + (o.route_note ? `<div class="rnote">${esc(o.route_note)}</div>` : "") + `</div><span class="s">${Number(o.stops) || 0} ${o.stops === 1 ? "stop" : "stops"}</span>`;
     sat.appendChild(head);
     const chips = document.createElement("div"); chips.className = "chips";
     const mk = (label, s, isBest) => {
       if (!s) return;
       const b = document.createElement("button");
       b.type = "button"; b.className = "chip" + (isBest ? " best" : "");
-      b.innerHTML = `<span class="cl">${label}</span><span class="cw">${s.window}</span>` + (s.note ? `<span class="cn">${s.note}</span>` : "");
+      b.innerHTML = `<span class="cl">${label}</span><span class="cw">${esc(s.window)}</span>` + (s.note ? `<span class="cn">${esc(s.note)}</span>` : "");
       b.onclick = () => {
         document.querySelectorAll(".chip").forEach(c => c.classList.remove("sel"));
         b.classList.add("sel");
@@ -483,7 +488,7 @@ async function loadMoney() {
   const p = store.get(); if (!p) return;
   $("profSummary").textContent = `${p.payout_method} · ${p.payout_handle}`;
   try {
-    const d = await api("partner_my_account", { phone: p.phone });
+    const d = await api("partner_my_account", { phone: p.phone, token: p.token || "" });
     $("mPayable").textContent = "$" + d.totals.payable;
     $("mBooked").textContent = "$" + d.totals.booked;
     $("mPaid").textContent = "$" + d.totals.paid;
@@ -496,7 +501,7 @@ async function loadMoney() {
       div.className = "ref";
       const dateStr = r.scheduled_date ? new Date(r.scheduled_date + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }) : "";
       const label = r.status === "booked" ? "Pending" : r.status === "payable" ? "Ready 💵" : "Paid";
-      div.innerHTML = `<div class="info"><div class="cn2">${r.customer_name || "Customer"}</div><div class="dt">Delivery ${dateStr}</div></div><span class="pill ${r.status}">${label}</span><span class="amt2">$${r.bounty}</span>`;
+      div.innerHTML = `<div class="info"><div class="cn2">${esc(r.customer_name || "Customer")}</div><div class="dt">Delivery ${esc(dateStr)}</div></div><span class="pill ${esc(r.status)}">${label}</span><span class="amt2">$${Number(r.bounty) || 25}</span>`;
       list.appendChild(div);
     });
   } catch (e) { /* leave defaults */ }
