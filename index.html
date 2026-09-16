@@ -264,6 +264,7 @@
     </div>
     <div id="refList"><div class="empty">No referrals yet. Send your first one and watch this fill up 💰</div></div>
     <div class="settings-link"><button class="btn btn-ghost" id="editProfile">Payout settings &middot; <span id="profSummary"></span></button></div>
+    <div class="settings-link" style="margin-top:2px"><a href="sms:3179690174" class="btn btn-ghost" style="display:inline-block;text-decoration:none">Questions about a payout? Text Evan &middot; (317) 969-0174</a></div>
   </div>
 
   <!-- tab bar -->
@@ -333,9 +334,11 @@ PARTNERS.forEach(c => {
   d.onclick = () => { pickedPartner = c; $("signupSub").textContent = `${c.name} · your $25 hits after each completed delivery.`; show("signup"); };
   grid.appendChild(d);
 });
-const more = document.createElement("div");
+const more = document.createElement("a");
 more.className = "co more";
-more.textContent = "Your company not here? Text Evan → salt gets you paid.";
+more.href = "sms:3179690174";
+more.style.textDecoration = "none";
+more.innerHTML = `Your company not here?<br>Questions?<br><b style="color:var(--teal-dark);font-size:15px">Text Evan · (317) 969-0174</b>`;
 grid.appendChild(more);
 $("backToPick").onclick = () => show("pick");
 
