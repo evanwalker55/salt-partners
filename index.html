@@ -154,6 +154,18 @@
   .tab svg { display: block; margin: 0 auto 3px; width: 23px; height: 23px; }
   .tab.on { color: var(--teal-dark); }
   .settings-link { text-align: center; margin-top: 16px; }
+
+  /* install helper */
+  .install {
+    display: none; align-items: center; gap: 12px;
+    background: var(--navy); color: #fff; border-radius: 14px;
+    padding: 13px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.45;
+  }
+  .install.on { display: flex; }
+  .install b { font-weight: 800; }
+  .install .ibtn { background: var(--yellow); color: var(--navy); border: none; border-radius: 10px; padding: 9px 14px; font-weight: 800; font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .install .ix { background: none; border: none; color: rgba(255,255,255,.6); font-size: 17px; cursor: pointer; padding: 2px 6px; }
+  .install .share-ico { display: inline-block; vertical-align: -3px; }
 </style>
 </head>
 <body>
@@ -166,6 +178,11 @@
 
   <!-- ===== PICK COMPANY ===== -->
   <div class="view" id="v-pick">
+    <div class="install" id="installBar">
+      <span id="installMsg"></span>
+      <button class="ibtn" id="installBtn" style="display:none">Install app</button>
+      <button class="ix" id="installX">&times;</button>
+    </div>
     <img src="logos/simplysalt.png" alt="Simply Salt" style="display:block;height:100px;margin:2px auto 14px;border-radius:24px;box-shadow:0 8px 24px rgba(19,49,78,.12)">
     <div class="bounty-banner"><b>Earn $25 💸</b><span>for every customer you send us. Refer in under a minute — we deliver their water-softener salt, you get paid.</span></div>
     <h1>Who do you work for?</h1>
@@ -484,6 +501,26 @@ $("editProfile").onclick = () => {
   document.querySelectorAll("#paySeg button").forEach(x => { x.classList.toggle("sel", x.dataset.m === p.payout_method); if (x.dataset.m === p.payout_method) payMethod = p.payout_method; });
   show("signup");
 };
+
+/* ---------- install helper ---------- */
+(function () {
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if (standalone || localStorage.getItem("sp_install_dismissed")) return;
+  const isiOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  let deferred = null;
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault(); deferred = e;
+    $("installMsg").innerHTML = "<b>Put Salt Partners on your home screen</b> — one tap, works like a regular app.";
+    $("installBtn").style.display = "block";
+    $("installBar").classList.add("on");
+  });
+  if (isiOS) {
+    $("installMsg").innerHTML = `<b>Add this to your home screen:</b> tap the Share button <svg class="share-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M8 7l4-4 4 4"/><path d="M5 11v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></svg> below, then <b>"Add to Home Screen"</b>. It becomes a real app icon.`;
+    $("installBar").classList.add("on");
+  }
+  $("installBtn").onclick = async () => { if (deferred) { deferred.prompt(); await deferred.userChoice; $("installBar").classList.remove("on"); } };
+  $("installX").onclick = () => { localStorage.setItem("sp_install_dismissed", "1"); $("installBar").classList.remove("on"); };
+})();
 
 /* ---------- boot ---------- */
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
