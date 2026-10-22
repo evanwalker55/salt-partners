@@ -19,7 +19,7 @@ Netlify Blobs store `salt-partners-v2`. A single state document uses ETag compar
 
 Current Netlify target: `simply-salt-partner-demo`, ID `5ed0cc76-d282-4f4a-b6bc-3a77b90d889b`. Review deployments are drafts. The original GitHub Pages app has not been replaced.
 
-Current review: https://6ada735bdaa3b3459c5a12f3--simply-salt-partner-demo.netlify.app. Verification evidence is recorded in `docs/verification-2026-10-22.md`.
+Current review: https://partner-app-review--simply-salt-partner-demo.netlify.app. Verification evidence is recorded in `docs/verification-2026-10-22.md`.
 
 ## Local development
 

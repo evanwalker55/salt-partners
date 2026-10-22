@@ -31,6 +31,7 @@ test('returning technicians retain their own company across devices and cannot s
   const f = await fixture(), first = await f.signin(); const p = await f.register(first, 'prime');
   f.advance(61000); const second = await f.signin();
   assert.equal((await f.call('me', undefined, second)).data.profile.companyId, 'prime');
+  assert.equal((await f.call('me', undefined, second)).data.historyReady, false);
   assert.equal((await f.call('profile', { name: p.name, companyId: 'peterman' }, second)).response.status, 400);
 });
 test('non-invited accounts require membership approval before booking and stickers', async () => {

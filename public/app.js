@@ -58,6 +58,7 @@ function show(view) {
   for (const section of $('main').children) if (section.tagName === 'SECTION') section.hidden = section.id !== view;
   $('loading').hidden = true;
   $('tabs').hidden = !me?.profile || ['welcome', 'gallery', 'onboarding'].includes(view);
+  $('history-note').hidden = !me?.profile || me.historyReady || ['welcome', 'gallery', 'onboarding'].includes(view);
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.view === view ? 'page' : 'false'));
   window.scrollTo(0, 0);
   $('main').focus({ preventScroll: true });

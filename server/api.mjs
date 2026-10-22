@@ -143,7 +143,7 @@ export function createHandler({ repo, providers, assets, env = process.env, now 
       if (path === 'me' && req.method === 'GET') {
         const tech = s.techs.find(t => t.id === session.techId && !t.deletedAt);
         if (!tech) return respond({ profile: null, phone: session.phone });
-        return respond({ profile: profile(s, tech), ...summarize(s, tech.id), orders: s.orders.filter(o => o.techId === tech.id), lastSync: s.lastSync || null, bookingEnabled: s.launch.bookingEnabled && (preview || env.PARTNER_BOOKING_ENABLED === 'true') });
+        return respond({ profile: profile(s, tech), ...summarize(s, tech.id), orders: s.orders.filter(o => o.techId === tech.id), lastSync: s.lastSync || null, historyReady: s.launch.legacyReconciled, bookingEnabled: s.launch.bookingEnabled && (preview || env.PARTNER_BOOKING_ENABLED === 'true') });
       }
       if (path === 'profile' && req.method === 'POST') {
         recent(session, at);

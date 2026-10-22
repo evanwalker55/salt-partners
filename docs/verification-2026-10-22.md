@@ -1,8 +1,8 @@
 # Review verification
 
-Hosted review: https://6ada735bdaa3b3459c5a12f3--simply-salt-partner-demo.netlify.app
+Hosted review: https://partner-app-review--simply-salt-partner-demo.netlify.app
 
-Netlify draft deploy: `6ada735bdaa3b3459c5a12f3`, project `5ed0cc76-d282-4f4a-b6bc-3a77b90d889b`.
+Netlify draft deploy: `6ada7444d619f10a3ef425a6`, project `5ed0cc76-d282-4f4a-b6bc-3a77b90d889b`.
 
 - 26 automated tests pass. They cover verified sessions, company membership, invitation scope, recovery, role/CSRF protection, payout edits, server-owned attribution, duplicate and uncertain bookings, source notes, existing-customer matching, daylight-saving boundaries, delivery sync, payout recording, sticker design snapshots, request replay, and account deletion.
 - Production dependencies have no reported audit vulnerabilities at verification time.
