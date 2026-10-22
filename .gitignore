@@ -1,0 +1,14 @@
+node_modules/
+.netlify/
+.private/
+.env
+.env.*
+!.env.example
+dist/
+android/.gradle/
+android/local.properties
+android/app/build/
+ios/App/Pods/
+ios/App/build/
+*.keystore
+*.jks

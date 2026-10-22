@@ -1,0 +1,11 @@
+{
+  "appId": "com.simplysalt.partners",
+  "appName": "Salt Partners",
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorHttp": { "enabled": true },
+    "CapacitorCookies": { "enabled": true }
+  },
+  "ios": { "contentInset": "always" },
+  "android": { "allowMixedContent": false }
+}

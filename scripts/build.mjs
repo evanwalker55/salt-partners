@@ -1,0 +1,10 @@
+import { cp, mkdir, writeFile } from 'node:fs/promises';
+import { build } from 'esbuild';
+const native = process.argv.includes('--native');
+const apiOrigin = native ? process.env.SALT_NATIVE_API_ORIGIN : '';
+if (native && !/^https:\/\/[^/]+$/.test(apiOrigin || '')) throw new Error('Set SALT_NATIVE_API_ORIGIN to the approved HTTPS backend origin before building a mobile release.');
+await mkdir('dist', { recursive: true });
+await cp('public', 'dist', { recursive: true });
+await writeFile('dist/config.js', `window.SALT_CONFIG = ${JSON.stringify({ apiOrigin: apiOrigin || '' })};\n`);
+await build({ entryPoints: ['public/app.js'], outfile: 'dist/app.js', bundle: true, format: 'esm', target: 'es2022', minify: false });
+console.log(native ? 'Native app assets built.' : 'Web app built.');

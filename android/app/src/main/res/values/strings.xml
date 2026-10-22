@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Salt Partners</string>
+    <string name="title_activity_main">Salt Partners</string>
+    <string name="package_name">com.simplysalt.partners</string>
+    <string name="custom_url_scheme">com.simplysalt.partners</string>
+</resources>
