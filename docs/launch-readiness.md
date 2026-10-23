@@ -1,4 +1,6 @@
-# Launch readiness — October 22, 2026
+# Launch readiness — updated October 23, 2026
+
+The October 23 audit and fixes are recorded in `store-audit-2026-10-23.html`. Submission is explicitly awaiting owner approval. Run `npm run release:check` to list evidence still required; it deliberately blocks while release gates remain incomplete.
 
 ## Implemented
 

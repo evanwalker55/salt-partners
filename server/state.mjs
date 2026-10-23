@@ -61,7 +61,28 @@ export function spendLimit(state, key, limit, windowMs, now) {
   for (const [k, times] of Object.entries(state.limits)) if (times.at(-1) < now - 86400000) delete state.limits[k];
 }
 export function publicCompany(company) {
-  return { id: company.id, name: company.name, kind: company.kind, logo: company.logoAsset ? `/api/partners/media/${company.logoAsset.id}` : company.logo, bountyCents: company.bountyCents, design: company.design, photo: company.photo };
+  return { id: company.id, name: company.name, kind: company.kind, active: company.active, logo: company.logoAsset ? `/api/partners/media/${company.logoAsset.id}` : company.logo, bountyCents: company.bountyCents, design: company.design, photo: company.photo };
+}
+export function eraseSettledDeletedAccounts(state) {
+  for (const tech of state.techs.filter(t => t.deletedAt)) {
+    for (const r of state.referrals.filter(r => r.techId === tech.id)) {
+      r.techName = 'Deleted technician';
+      if (['paid', 'cancelled'].includes(r.status)) {
+        r.customerName = 'Removed customer';
+        for (const key of ['customerPhone', 'street', 'city', 'zip', 'email', 'notes', 'waterType', 'customerId', 'paidTo', 'fingerprint']) delete r[key];
+      }
+    }
+    for (const o of state.orders.filter(o => o.techId === tech.id && ['fulfilled', 'cancelled'].includes(o.status))) {
+      o.shipping = null; o.tracking = '';
+      for (const entry of o.history) delete entry.tracking;
+      delete o.fingerprint;
+    }
+    if (!state.referrals.some(r => r.techId === tech.id && !['paid', 'cancelled'].includes(r.status))) {
+      for (const request of state.deletionRequests.filter(r => r.techId === tech.id)) {
+        request.name = null; request.payout = null; request.status = 'settled';
+      }
+    }
+  }
 }
 export function profile(state, tech) {
   return { ...tech, company: publicCompany(state.companies.find(c => c.id === tech.companyId)), verified: true };

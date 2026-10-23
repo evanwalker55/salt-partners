@@ -1,0 +1,15 @@
+Draft for the owner's approval — not submitted to either store.
+
+Purpose: Simply Salt partner technicians book customer-authorized physical salt deliveries, follow referral rewards, save payout destinations, and request free physical company stickers. No digital items are sold. Payments are sent separately by Simply Salt; the app does not transfer funds.
+
+Public exploration: the opening screen lists partner companies without requiring an account. Choose a company to view its illustrative tank image and verified sign-in flow.
+
+Sample access: choose "Explore sample workspace" on the opening screen. No password, SMS, geographical presence, or company invitation is needed for the sample workspace. A persistent banner identifies it as a sample. The same customer, delivery, confirmation, earnings, stickers, profile, and deletion screens are used. All sample records exist only in memory; actions do not call live providers. Use sample information only. Exit or reload to reset it. Sample access is available to every user, not a hidden reviewer bypass.
+
+Real partner access: US phone verification followed by a company invitation or membership approval. Returning users retain their company. Before submitting, arrange and verify a repeatable method for reviewers to inspect every real restricted feature in accordance with each store's App access/App Review instructions; do not rely on an owner being available to relay one-time SMS codes. Explain the public sample access explicitly. The sample does not prove production SMS or booking integration works.
+
+Account deletion: Account > Delete my account > type DELETE > Delete my account. A real account may require a fresh SMS verification before a sensitive change. The website also offers /delete-account.html without requiring the app to be installed. Email support is available if the original number is inaccessible. Pending service/reward exceptions and automatic cleanup after settlement are described in the privacy policy.
+
+Company assets: company listings, logos, illustrative tank photos, and approved sticker designs are content served by Simply Salt. New content does not download executable application code. Existing sticker requests retain the original approved artwork version. No AI generation is performed on customer records by this app.
+
+Do not submit while live booking is paused, legacy reconciliation is incomplete, developer enrollment is pending, or native/device evidence is missing. Replace all review URLs with the approved permanent origin and validate the final signed build before submission. A browser preview is not proof of native operation.

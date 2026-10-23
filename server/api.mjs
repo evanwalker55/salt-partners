@@ -1,4 +1,4 @@
-import { AppError, ensure, text, phone, hash, secret, id, equal, audit, spendLimit, publicCompany, profile, payoutDetails, completed } from './state.mjs';
+import { AppError, ensure, text, phone, hash, secret, id, equal, audit, spendLimit, publicCompany, profile, payoutDetails, completed, eraseSettledDeletedAccounts } from './state.mjs';
 
 const DAY = 86400000;
 const COOKIE = '__Host-salt_partner';
@@ -46,7 +46,7 @@ function validAddress(value) {
   return a;
 }
 function bookingFields(body) {
-  const fields = { customerName: text(body.customerName, 100), customerPhone: phone(body.customerPhone), street: text(body.street, 180), city: text(body.city, 80), zip: text(body.zip, 5), email: body.email ? text(body.email, 180) : '', waterType: body.waterType, notes: body.notes ? text(body.notes, 500) : '' };
+  const fields = { customerName: text(body.customerName, 100), customerPhone: phone(body.customerPhone), street: text(body.street, 180), city: text(body.city, 80), zip: text(body.zip, 5), email: body.email ? text(body.email, 180) : '', waterType: body.waterType, notes: body.notes ? text(typeof body.notes === 'string' ? body.notes.replace(/\r?\n/g, ' ') : body.notes, 500) : '' };
   ensure(/^\d{5}$/.test(fields.zip), 400, 'Enter a five-digit ZIP.');
   ensure(['city', 'well'].includes(fields.waterType), 400, 'Choose city or well water.');
   ensure(!fields.email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email), 400, 'Check the customer email.');
@@ -146,19 +146,22 @@ export function createHandler({ repo, providers, assets, env = process.env, now 
         return respond({ profile: profile(s, tech), ...summarize(s, tech.id), orders: s.orders.filter(o => o.techId === tech.id), lastSync: s.lastSync || null, historyReady: s.launch.legacyReconciled, bookingEnabled: s.launch.bookingEnabled && (preview || env.PARTNER_BOOKING_ENABLED === 'true') });
       }
       if (path === 'profile' && req.method === 'POST') {
-        recent(session, at);
         const name = text(body.name, 100);
+        ensure(!(body.removePayout && body.payout), 400, 'Choose whether to save or remove payout details.');
         const payout = body.payout ? payoutDetails(body.payout.method, body.payout.handle) : null;
         const result = await repo.change(d => {
           const currentSession = sessionFor(d, req, at);
           const existing = d.techs.find(t => t.id === currentSession.techId && !t.deletedAt);
           if (existing) {
+            if (payout || body.removePayout === true) recent(currentSession, at);
             ensure(!body.companyId || body.companyId === existing.companyId, 400, 'Contact Evan to change companies.');
             existing.name = name;
             if (payout) existing.payout = { ...payout, version: id(), updatedAt: new Date(at).toISOString() };
+            if (body.removePayout === true) existing.payout = null;
             audit(d, 'profile_updated', existing.id, existing.id, at);
             return profile(d, existing);
           }
+          recent(currentSession, at);
           ensure(!d.techs.some(t => t.phone === currentSession.phone && !t.deletedAt), 409, 'This account was created in another window. Sign in again.');
           const company = matchingCompany(d, body.companyId);
           let membership = 'pending';
@@ -177,7 +180,8 @@ export function createHandler({ repo, providers, assets, env = process.env, now 
       }
       if (path === 'availability' && req.method === 'POST') {
         const tech = activeTech(s, session);
-        ensure(s.launch.bookingEnabled, 503, 'Bookings are not activated in this review version.');
+        ensure(s.launch.bookingEnabled && (preview || env.PARTNER_BOOKING_ENABLED === 'true'), 503, 'Bookings are not activated in this review version.');
+        ensure(body.customerConsent === true, 400, 'Confirm the customer agreed to share their name and address to find delivery times.');
         const address = text(body.address, 220), zip = text(body.zip, 5), name = text(body.customerName, 100);
         ensure(/^\d{5}$/.test(zip), 400, 'Enter a five-digit ZIP.');
         await repo.change(d => spendLimit(d, `availability-${tech.id}`, 20, 3600000, at));
@@ -199,7 +203,7 @@ export function createHandler({ repo, providers, assets, env = process.env, now 
         const referralId = id();
         const claimed = await repo.change(d => {
           const tech = activeTech(d, sessionFor(d, req, at));
-          ensure(d.launch.bookingEnabled, 503, 'Bookings are not activated in this review version.');
+          ensure(d.launch.bookingEnabled && (preview || env.PARTNER_BOOKING_ENABLED === 'true'), 503, 'Bookings are not activated in this review version.');
           const old = d.referrals.find(r => r.techId === tech.id && r.requestId === requestId);
           if (old) {
             ensure(old.fingerprint === fingerprint, 409, 'This booking reference was already used with different details.');
@@ -270,6 +274,7 @@ export function createHandler({ repo, providers, assets, env = process.env, now 
           for (const o of d.orders.filter(o => o.techId === tech.id)) { o.techName = 'Deleted technician'; if (['fulfilled', 'cancelled'].includes(o.status)) o.shipping = null; }
           d.sessions = d.sessions.filter(v => v.techId !== tech.id && v.phone !== session.phone);
           d.quotes = d.quotes.filter(q => q.techId !== tech.id);
+          eraseSettledDeletedAccounts(d);
           audit(d, 'account_deleted', tech.id, tech.id, at, { paymentRetention: outstanding });
         });
         return respond({ deleted: true }, 200, { 'Set-Cookie': setCookie(COOKIE, '', 0) });
@@ -321,14 +326,16 @@ export function createHandler({ repo, providers, assets, env = process.env, now 
           ensure((png || jpg) && bytes.length >= 32 && bytes.length <= 2000000, 400, 'Choose a PNG or JPEG under 2 MB.');
           const design = { id: id(), name, version: (company.design?.version || 0) + 1, approvedAt: new Date(at).toISOString() };
           await assets.put(design.id, bytes, png ? 'image/png' : 'image/jpeg');
-          await repo.change(d => {
+          const savedDesign = await repo.change(d => {
             const c = matchingCompany(d, company.id);
+            design.version = (c.design?.version || 0) + 1;
             if (path === 'owner/design') c.design = design;
             else if (path === 'owner/photo') c.photo = { id: design.id, caption: body.illustrative === true ? 'Illustrative sticker mockup' : 'Partnership sticker photo' };
             else c.logoAsset = { id: design.id };
             audit(d, path === 'owner/design' ? 'design_approved' : 'company_image_updated', 'owner', company.id, at, { designId: design.id });
+            return structuredClone(design);
           });
-          return respond({ design });
+          return respond({ design: savedDesign });
         }
         if (path.startsWith('owner/design/') && req.method === 'GET') return await assets.response(path.slice(13), cors);
         if (path === 'owner/order' && req.method === 'POST') {
@@ -342,6 +349,7 @@ export function createHandler({ repo, providers, assets, env = process.env, now 
             const transitions = { requested: ['processing', 'cancelled'], processing: ['shipped', 'fulfilled', 'cancelled'], shipped: ['fulfilled'], fulfilled: [], cancelled: [] };
             ensure(transitions[order.status].includes(body.status), 400, 'Choose the next fulfillment step.');
             order.status = body.status; order.tracking = tracking; order.history.push({ status: body.status, at: new Date(at).toISOString(), tracking });
+            eraseSettledDeletedAccounts(d);
             audit(d, 'sticker_status_updated', 'owner', order.id, at, { status: body.status });
           });
           return respond({ saved: true });
@@ -359,6 +367,7 @@ export function createHandler({ repo, providers, assets, env = process.env, now 
             ensure(payout && payout.version === body.payoutVersion, 409, 'Payout details changed. Refresh and check the recipient before recording payment.');
             r.status = 'paid'; r.paidAt = new Date(at).toISOString(); r.paymentReference = reference; r.paidTo = structuredClone(payout);
             if (retained && !d.referrals.some(v => v.techId === r.techId && !['paid', 'cancelled'].includes(v.status))) { retained.payout = null; retained.name = null; retained.status = 'settled'; }
+            eraseSettledDeletedAccounts(d);
             audit(d, 'payment_recorded', 'owner', r.id, at, { amountCents: r.bountyCents, reference });
           });
           return respond({ recorded: true });
@@ -395,6 +404,7 @@ export async function syncCompletions({ repo, providers, now = () => Date.now(),
         if (!['booked', 'earned'].includes(r.status)) return;
         const status = completed(job) ? 'earned' : job.canceled_at || job.deleted_at || /cancel/i.test(job.work_status || '') ? 'cancelled' : 'booked';
         if (r.status !== status) { r.status = status; audit(d, 'delivery_status_synced', 'system', r.id, now(), { status }); }
+        eraseSettledDeletedAccounts(d);
       });
       checked++;
     } catch { failures++; }

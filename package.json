@@ -9,9 +9,10 @@
     "build": "node scripts/build.mjs",
     "test": "node --test tests/*.test.mjs",
     "dev": "node scripts/dev.mjs",
-    "native:sync": "node scripts/build.mjs --native && cap sync",
+    "native:sync": "node scripts/build.mjs --native && cap sync && node scripts/normalize-ios.mjs",
     "native:android": "cap open android",
-    "native:ios": "cap open ios"
+    "native:ios": "cap open ios",
+    "release:check": "node scripts/release-check.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",

@@ -1,5 +1,5 @@
-const CACHE = 'salt-partners-shell-v3';
-const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'config.js', 'fonts/bungee.woff2', 'fonts/opensans.woff2', 'logos/simplysalt.png'];
+const CACHE = 'salt-partners-shell-v4';
+const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'config.js', 'privacy.html', 'terms.html', 'support.html', 'delete-account.html', 'fonts/bungee.woff2', 'fonts/opensans.woff2', 'logos/simplysalt.png'];
 self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('salt-partners-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {

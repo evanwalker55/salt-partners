@@ -10,7 +10,7 @@ export class MemoryStore {
     const etag = String(++this.revision); this.entries.set(key, { data: structuredClone(data), etag }); return { modified: true, etag };
   }
 }
-export async function fixture() {
+export async function fixture(envOverrides = {}) {
   let time = Date.parse('2026-10-22T15:00:00Z');
   const store = new MemoryStore(), repo = new Repository(store);
   await store.setJSON('state', initialState());
@@ -24,7 +24,7 @@ export async function fixture() {
     async getJob(id) { return { id, work_status: 'complete unrated' }; }
   };
   const assets = { async put() {}, async response() { return new Response('image', { headers: { 'Content-Type': 'image/png' } }); } };
-  const handler = createHandler({ repo, providers, assets, env: { PARTNER_OWNER_PASSWORD_HASH: hash('owner-password') }, now: () => time });
+  const handler = createHandler({ repo, providers, assets, env: { PARTNER_OWNER_PASSWORD_HASH: hash('owner-password'), PARTNER_BOOKING_ENABLED: 'true', ...envOverrides }, now: () => time });
   const request = (path, body, cookie = '', method = body ? 'POST' : 'GET', headers = {}) => new Request('https://salt.test/api/partners/' + path, { method, headers: { Origin: 'https://salt.test', 'X-Nf-Client-Connection-Ip': '192.0.2.1', Cookie: cookie, ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers }, ...(body ? { body: JSON.stringify(body) } : {}) });
   async function call(path, body, cookie, method, headers) {
     const response = await handler(request(path, body, cookie, method, headers));
@@ -47,7 +47,7 @@ export async function fixture() {
   }
   async function booking(cookie, overrides = {}) {
     await repo.change(s => { s.launch = { bookingEnabled: true, legacyReconciled: true }; });
-    const quote = await call('availability', { address: '10 Main St, Carmel', zip: '46032', customerName: 'Alex Customer' }, cookie);
+    const quote = await call('availability', { address: '10 Main St, Carmel', zip: '46032', customerName: 'Alex Customer', customerConsent: true }, cookie);
     return { requestId: 'booking-request-00000001', quoteId: quote.data.quoteId, date: '2026-10-24', time: '09:00', customerName: 'Alex Customer', customerPhone: '3175556789', street: '10 Main St', city: 'Carmel', zip: '46032', waterType: 'city', customerConsent: true, ...overrides };
   }
   return { store, repo, providers, calls, handler, request, call, signin, owner, register, booking, advance: ms => { time += ms; }, now: () => time };

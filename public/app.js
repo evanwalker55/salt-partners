@@ -1,4 +1,6 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
+import { createSampleClient, sampleCompanies } from './sample.mjs';
+import { fetchWithTimeout, requestId } from './client-utils.mjs';
 import { App } from '@capacitor/app';
 import { Share } from '@capacitor/share';
 import { Haptics, NotificationType } from '@capacitor/haptics';
@@ -10,8 +12,11 @@ const apiBase = apiOrigin + '/api/partners/';
 const money = cents => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format((cents || 0) / 100);
 const date = value => value ? new Date(value.length === 10 ? value + 'T12:00:00Z' : value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: value.length === 10 ? 'UTC' : 'America/Indiana/Indianapolis' }) : '';
 const labels = { booked: 'Pending delivery', creating: 'Confirming', needs_review: 'Needs review', earned: 'Ready for payout', paid: 'Paid', cancelled: 'Cancelled', requested: 'Requested', processing: 'Processing', shipped: 'Shipped', fulfilled: 'Fulfilled', pending: 'Awaiting approval', active: 'Verified', suspended: 'On hold' };
-let config, me, selectedCompany, currentView, bookingStep = 1, quote, chosen;
-let bookingId = crypto.randomUUID(), orderId = crypto.randomUUID();
+let config, me, selectedCompany, currentView, bookingStep = 1, quote, chosen, sampleClient, reauthView;
+let bookingId = requestId(), orderId = requestId();
+let artworkLoad = 0;
+let resendAfter = 0, supportReturn = 'gallery';
+let sampleContext;
 const params = new URLSearchParams(location.search);
 const deletionRequested = params.has('delete');
 let invite = params.get('invite') || sessionStorage.getItem('salt_invite') || '';
@@ -21,8 +26,10 @@ if (companyId) sessionStorage.setItem('salt_company', companyId);
 if (params.has('invite')) history.replaceState(null, '', location.pathname + (companyId ? '?company=' + encodeURIComponent(companyId) : ''));
 
 async function api(path, body, method = body ? 'POST' : 'GET') {
-  const response = await fetch(apiBase + path, { method, credentials: 'include', headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(native ? { 'X-Salt-Client': 'native' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}), signal: AbortSignal.timeout(55000) });
-  const data = await response.json();
+  if (sampleClient) return sampleClient(path, body);
+  const response = await fetchWithTimeout(apiBase + path, { method, credentials: 'include', headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(native ? { 'X-Salt-Client': 'native' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  let data;
+  try { data = await response.json(); } catch { throw new Error('The service could not respond. Please try again shortly.'); }
   if (!response.ok) { const error = new Error(data.error || 'Please try again.'); error.status = response.status; throw error; }
   return data;
 }
@@ -40,28 +47,43 @@ async function run(formOrButton, target, action) {
   const button = formOrButton.tagName === 'FORM' ? formOrButton.querySelector('button:not([type=button])') : formOrButton;
   if (button.disabled) return;
   const original = button.textContent;
+  formOrButton.setAttribute('aria-busy', 'true');
   button.disabled = true; button.textContent = 'Please wait…'; status(target);
   try { await action(); }
   catch (error) {
-    const message = error.name === 'TimeoutError' || error.name === 'TypeError' ? 'The connection was interrupted. Try again using this same request; do not start a duplicate booking.' : error.message;
+    const message = ['TimeoutError', 'AbortError', 'TypeError'].includes(error.name) ? 'The connection was interrupted. Try again using this same request; do not start a duplicate booking.' : error.message;
     status(target, message, true);
     if (error.status === 401) {
-      me = null;
+      clearPrivateView();
       renderWelcome(selectedCompany);
       show('welcome');
       status('auth-status', 'Your session expired. Sign in again to continue.', true);
     }
-  } finally { button.disabled = false; button.textContent = original; }
+  } finally { button.disabled = false; button.textContent = original; formOrButton.removeAttribute('aria-busy'); }
+}
+function clearPrivateView() {
+  artworkLoad++;
+  for (const id of ['phone-form', 'code-form', 'profile-create', 'customer-form', 'confirm-form', 'settings-form', 'sticker-form']) $(id).reset();
+  for (const id of ['recent-referrals', 'referrals', 'orders', 'slots']) $(id).replaceChildren();
+  for (const id of ['auth-status', 'profile-status', 'settings-status', 'booking-status', 'sticker-status', 'delete-status', 'money-status']) status(id);
+  for (const id of ['booking-summary', 'success-summary', 'booking-reference', 'verified-phone', 'money-payout', 'company-name', 'account-company', 'greeting', 'payout-hint', 'sticker-name', 'design-version', 'credit-note', 'membership', 'home-earned', 'earned', 'pending', 'paid']) $(id).textContent = '';
+  $('sticker-preview').removeAttribute('src'); $('delete-confirm').value = '';
+  me = null; quote = null; chosen = null; bookingId = requestId(); orderId = requestId();
+  sessionStorage.removeItem('salt_invite'); invite = '';
+  $('phone-form').hidden = false; $('code-form').hidden = true;
 }
 function show(view) {
   currentView = view;
   for (const section of $('main').children) if (section.tagName === 'SECTION') section.hidden = section.id !== view;
   $('loading').hidden = true;
+  $('load-error').hidden = true;
+  $('public-footer').hidden = Boolean(me?.profile);
   $('tabs').hidden = !me?.profile || ['welcome', 'gallery', 'onboarding'].includes(view);
   $('history-note').hidden = !me?.profile || me.historyReady || ['welcome', 'gallery', 'onboarding'].includes(view);
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-current', b.dataset.view === view ? 'page' : 'false'));
   window.scrollTo(0, 0);
   $('main').focus({ preventScroll: true });
+  if (view === 'account' && deletionRequested) $('delete-panel').open = true;
 }
 function mediaPath(path) { return path.startsWith('/api/') ? apiOrigin + path : path; }
 function renderGallery() {
@@ -75,6 +97,7 @@ function renderGallery() {
     tile.onclick = () => { selectedCompany = company; companyId = company.id; sessionStorage.setItem('salt_company', company.id); if (me && !me.profile) renderOnboarding(); else { renderWelcome(company); show('welcome'); } };
     grid.append(tile);
   }
+  if (!config.companies.length) grid.append(el('p', 'Partner companies are being prepared. Contact Simply Salt to join.', 'empty'));
 }
 function renderWelcome(company) {
   $('welcome-partner-name').textContent = company?.name || 'Simply Salt partners';
@@ -114,10 +137,11 @@ function renderAccount() {
   $('company-name').textContent = p.company.name;
   $('greeting').textContent = `Hi, ${p.name.split(' ')[0]}.`;
   $('membership').textContent = labels[p.membership] || p.membership; $('membership').className = 'pill ' + p.membership;
-  $('membership-note').hidden = p.membership === 'active';
+  $('membership-note').hidden = p.membership === 'active' && p.company.active !== false;
   $('membership-note').textContent = p.membership === 'pending' ? 'Your phone is verified. Evan needs to approve your company membership before you can book or order stickers.' : 'Your company access is on hold. Contact Evan for help.';
   $('launch-note').hidden = me.bookingEnabled;
-  $('start-booking').disabled = !me.bookingEnabled || p.membership !== 'active';
+  if (p.company.active === false) $('membership-note').textContent = 'Your company’s program is paused. Contact Simply Salt for help.';
+  $('start-booking').disabled = !me.bookingEnabled || p.membership !== 'active' || p.company.active === false;
   $('payout-hint').textContent = p.payout ? `${p.payout.method === 'applecash' ? 'Apple Cash' : p.payout.method === 'zelle' ? 'Zelle' : 'Venmo'} · ${p.payout.handle}` : 'Choose Venmo, Zelle, or Apple Cash.';
   $('home-earned').textContent = money(me.totals.earned);
   $('earned').textContent = money(me.totals.earned); $('pending').textContent = money(me.totals.pending); $('paid').textContent = money(me.totals.paid);
@@ -126,18 +150,19 @@ function renderAccount() {
   $('account-company').textContent = p.company.name;
   $('edit-name').value = p.name; $('verified-phone').textContent = p.phone + ' · verified';
   $('payout-method').value = p.payout?.method || ''; $('payout-handle').value = p.payout?.handle || '';
+  $('remove-payout').checked = false;
   updatePayoutHint(); renderStickers();
 }
 function renderStickers() {
   const p = me.profile, design = p.company.design;
   $('no-design').hidden = Boolean(design); $('sticker-form').hidden = !design;
   if (design) {
-    $('sticker-preview').src = apiBase + 'design/' + design.id;
+    loadArtwork(design.id);
     $('sticker-name').textContent = design.name;
-    $('design-version').textContent = `Approved design · version ${design.version} · ${p.company.name}`;
+    $('design-version').textContent = `${sampleClient ? 'Sample artwork' : 'Approved design'} · version ${design.version} · ${p.company.name}`;
     if (!$('ship-name').value) $('ship-name').value = p.name;
   }
-  $('request-stickers').disabled = p.membership !== 'active';
+  $('request-stickers').disabled = p.membership !== 'active' || p.company.active === false;
   const list = $('orders'); list.replaceChildren();
   if (!me.orders.length) list.append(el('p', 'Your sticker requests will appear here.', 'empty'));
   for (const order of me.orders.slice().reverse()) {
@@ -151,6 +176,20 @@ function renderStickers() {
     node.append(history); list.append(node);
   }
 }
+async function loadArtwork(designId) {
+  const load = ++artworkLoad;
+  $('artwork-status').textContent = '';
+  try {
+    if (sampleClient) { $('sticker-preview').src = 'logos/prime.png'; return; }
+    if (!native) { $('sticker-preview').src = apiBase + 'design/' + designId; return; }
+    // Native HTTP shares the authenticated cookie jar. A cross-origin image tag may not.
+    const response = await CapacitorHttp.get({ url: apiBase + 'design/' + designId, responseType: 'arraybuffer' });
+    if (response.status !== 200) throw new Error('Artwork could not load. Sign in again or contact Simply Salt.');
+    const type = response.headers['Content-Type'] || response.headers['content-type'];
+    if (!['image/png', 'image/jpeg'].includes(type)) throw new Error('Artwork could not load. Contact Simply Salt.');
+    if (load === artworkLoad) $('sticker-preview').src = `data:${type};base64,${response.data}`;
+  } catch (error) { if (load === artworkLoad) $('artwork-status').textContent = error.message; }
+}
 async function refresh() {
   me = await api('me');
   if (!me.profile) { renderOnboarding(); return; }
@@ -161,8 +200,14 @@ async function refresh() {
 function step(number) {
   bookingStep = number;
   for (const [index, item] of ['customer-form', 'delivery-step', 'confirm-form', 'booking-success'].entries()) $(item).hidden = index + 1 !== number;
-  document.querySelectorAll('.steps li').forEach(li => { li.classList.toggle('current', Number(li.dataset.step) === Math.min(number, 3)); });
+  document.querySelectorAll('.steps li').forEach(li => {
+    const current = Number(li.dataset.step) === Math.min(number, 3);
+    li.classList.toggle('current', current);
+    if (current) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+  });
   status('booking-status'); window.scrollTo(0, 0);
+  const heading = $(['customer-form', 'delivery-step', 'confirm-form', 'booking-success'][number - 1]).querySelector('h1');
+  heading.tabIndex = -1; heading.focus({ preventScroll: true });
 }
 function renderSlots(options) {
   const list = $('slots'); list.replaceChildren(); chosen = null; $('confirm-time').disabled = true;
@@ -191,14 +236,21 @@ function renderSlots(options) {
 
 $('phone-form').onsubmit = event => { event.preventDefault(); run(event.currentTarget, 'auth-status', async () => {
   await api('auth/start', { phone: $('phone').value, consent: $('sms-consent').checked });
+  resendAfter = Date.now() + 61000;
   $('phone-form').hidden = true; $('code-form').hidden = false; $('code').focus();
   status('auth-status', config.demo ? 'Local preview code: 123456. No text was sent.' : 'Code sent. Check your messages.');
 }); };
+$('resend-code').onclick = () => run($('resend-code'), 'auth-status', async () => {
+  if (Date.now() < resendAfter) throw new Error(`Wait ${Math.ceil((resendAfter - Date.now()) / 1000)} seconds before requesting another code.`);
+  await api('auth/start', { phone: $('phone').value, consent: $('sms-consent').checked });
+  resendAfter = Date.now() + 61000; $('code').value = ''; $('code').focus();
+  status('auth-status', 'A new code was sent. Check your messages.');
+});
 $('different-phone').onclick = () => { $('code-form').hidden = true; $('phone-form').hidden = false; $('code').value = ''; status('auth-status'); };
 $('code-form').onsubmit = event => { event.preventDefault(); run(event.currentTarget, 'auth-status', async () => {
   await api('auth/check', { phone: $('phone').value, code: $('code').value });
   await refresh();
-  if (me.profile) show(deletionRequested ? 'account' : 'home');
+  if (me.profile) { const view = reauthView || (deletionRequested ? 'account' : 'home'); reauthView = null; show(view); }
 }); };
 $('profile-create').onsubmit = event => { event.preventDefault(); run(event.currentTarget, 'profile-status', async () => {
   await api('profile', { name: $('new-name').value, companyId: $('company').value, invite: $('invite-code').value });
@@ -206,18 +258,22 @@ $('profile-create').onsubmit = event => { event.preventDefault(); run(event.curr
 }); };
 $('back-gallery').onclick = () => { selectedCompany = null; show('gallery'); };
 $('new-company-change').onclick = () => { selectedCompany = null; show('gallery'); };
-$('verify-again').onclick = () => { $('phone').value = me.profile.phone; $('phone-form').hidden = false; $('code-form').hidden = true; $('code').value = ''; renderWelcome(me.profile.company); show('welcome'); status('auth-status', 'Request a new code to confirm a sensitive account change.'); };
+$('verify-again').onclick = () => {
+  if (sampleClient) { status('settings-status', 'Sample accounts do not use phone verification.'); return; }
+  reauthView = 'account'; $('phone').value = me.profile.phone; $('phone-form').hidden = false; $('code-form').hidden = true; $('code').value = ''; renderWelcome(me.profile.company); show('welcome'); status('auth-status', 'Request a new code to confirm a sensitive account change. You’ll return to Account afterward.');
+};
 $('returning-signin').onclick = () => { selectedCompany = null; renderWelcome(null); show('welcome'); };
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => { if (b.dataset.view === 'money') refresh().then(() => show('money')).catch(e => status('money-status', e.message, true)); else show(b.dataset.view); });
-$('help').onclick = () => { location.href = 'sms:3179690174'; };
+$('help').onclick = () => { supportReturn = currentView || 'gallery'; show('support'); };
+$('support-back').onclick = () => show(supportReturn);
 $('view-money').onclick = () => show('money');
 $('home-payout').onclick = () => show('account');
 $('home-stickers').onclick = () => show('stickers');
-$('start-booking').onclick = () => { quote = null; chosen = null; bookingId = crypto.randomUUID(); step(1); show('booking'); };
+$('start-booking').onclick = () => { quote = null; chosen = null; bookingId = requestId(); step(1); show('booking'); };
 $('booking-back').onclick = () => { if (bookingStep > 1 && bookingStep < 4) step(bookingStep - 1); else show('home'); };
 $('customer-form').onsubmit = event => { event.preventDefault(); run(event.currentTarget, 'booking-status', async () => {
-  quote = await api('availability', { customerName: $('customer-name').value, address: `${$('street').value.trim()}, ${$('city').value.trim()}`, zip: $('zip').value });
-  bookingId = crypto.randomUUID(); renderSlots(quote.options); step(2);
+  quote = await api('availability', { customerName: $('customer-name').value, address: `${$('street').value.trim()}, ${$('city').value.trim()}`, zip: $('zip').value, customerConsent: $('availability-consent').checked });
+  bookingId = requestId(); renderSlots(quote.options); step(2);
 }); };
 $('confirm-time').onclick = () => {
   if (!chosen) return;
@@ -236,7 +292,7 @@ $('booking-done').onclick = () => run($('booking-done'), 'booking-status', async
 $('refresh-money').onclick = () => run($('refresh-money'), 'money-status', async () => { await refresh(); status('money-status', me.lastSync ? 'Account refreshed. Delivery checks last ran ' + date(me.lastSync.at) + (me.lastSync.partial || me.lastSync.failures ? '; some jobs are still waiting to be checked.' : '.') : 'Account refreshed. Delivery completion checks have not run yet.'); });
 $('sticker-form').onsubmit = event => { event.preventDefault(); run(event.currentTarget, 'sticker-status', async () => {
   const result = await api('stickers', { requestId: orderId, designId: me.profile.company.design.id, quantity: Number($('quantity').value), shipping: { name: $('ship-name').value, street: $('ship-street').value, unit: $('ship-unit').value, city: $('ship-city').value, state: $('ship-state').value, zip: $('ship-zip').value } });
-  await refresh(); orderId = crypto.randomUUID(); status('sticker-status', `Request received. ${result.order.quantity} stickers · $0 due. Evan will review and fulfill your request.`);
+  await refresh(); orderId = requestId(); status('sticker-status', `Request received. ${result.order.quantity} stickers · $0 due. ${sampleClient ? 'This is a sample request; nothing will be shipped.' : 'Evan will review and fulfill your request.'}`);
   if (native) Haptics.notification({ type: NotificationType.Success }).catch(() => {});
 }); };
 function updatePayoutHint() {
@@ -247,11 +303,12 @@ function updatePayoutHint() {
 $('payout-method').onchange = updatePayoutHint;
 $('settings-form').onsubmit = event => { event.preventDefault(); run(event.currentTarget, 'settings-status', async () => {
   const method = $('payout-method').value, handle = $('payout-handle').value;
-  if (Boolean(method) !== Boolean(handle)) throw new Error('Choose a payout method and enter its username, phone, or email.');
-  await api('profile', { name: $('edit-name').value, ...(method ? { payout: { method, handle } } : {}) });
+  const removePayout = $('remove-payout').checked;
+  if (!removePayout && Boolean(method) !== Boolean(handle)) throw new Error('Choose a payout method and enter its username, phone, or email.');
+  await api('profile', { name: $('edit-name').value, ...(removePayout ? { removePayout: true } : method ? { payout: { method, handle } } : {}) });
   await refresh(); status('settings-status', 'Your profile and payout details are saved.');
 }); };
-$('signout').onclick = () => run($('signout'), 'settings-status', async () => { await api('auth/logout', {}); me = null; $('phone-form').hidden = false; $('code-form').hidden = true; $('code').value = ''; show('gallery'); });
+$('signout').onclick = () => run($('signout'), 'settings-status', async () => { await api('auth/logout', {}); const wasSample = Boolean(sampleClient); clearPrivateView(); if (wasSample) stopSample(); else { selectedCompany = null; companyId = ''; sessionStorage.removeItem('salt_company'); } await loadApp(); });
 $('share-app').onclick = () => run($('share-app'), 'settings-status', async () => {
   const url = new URL('/?company=' + encodeURIComponent(me.profile.companyId), apiOrigin || location.origin).href;
   if (native) await Share.share({ title: 'Salt Partners', text: 'Simply Salt partner referrals', url });
@@ -259,24 +316,48 @@ $('share-app').onclick = () => run($('share-app'), 'settings-status', async () =
   else { await navigator.clipboard.writeText(url); status('settings-status', 'App link copied.'); }
 });
 $('delete-account').onclick = () => run($('delete-account'), 'delete-status', async () => {
-  await api('account', { confirm: $('delete-confirm').value }, 'DELETE'); me = null;
-  $('phone-form').hidden = false; $('code-form').hidden = true; $('code').value = '';
-  renderWelcome(null); show('welcome'); status('auth-status', 'Your account was deleted.');
+  const wasSample = Boolean(sampleClient);
+  await api('account', { confirm: $('delete-confirm').value }, 'DELETE');
+  clearPrivateView(); if (wasSample) stopSample();
+  renderWelcome(wasSample ? selectedCompany : null); show('welcome'); status('auth-status', wasSample ? 'Sample account deleted. No real account was changed.' : 'Your account was deleted.');
 });
+$('sticker-preview').onerror = () => { $('artwork-status').textContent = 'The sticker image could not load. Contact Simply Salt before requesting this design.'; };
+async function openSample() {
+  sampleContext = { selectedCompany, companyId, invite };
+  clearPrivateView();
+  config ||= { companies: sampleCompanies, verificationReady: false };
+  sampleClient = createSampleClient(); $('sample-banner').hidden = false;
+  await refresh(); show('home');
+}
+function stopSample() {
+  sampleClient = null; $('sample-banner').hidden = true;
+  selectedCompany = sampleContext?.selectedCompany || null; companyId = sampleContext?.companyId || ''; invite = sampleContext?.invite || '';
+  if (companyId) sessionStorage.setItem('salt_company', companyId); else sessionStorage.removeItem('salt_company');
+  if (invite) sessionStorage.setItem('salt_invite', invite); else sessionStorage.removeItem('salt_invite');
+  sampleContext = null;
+}
+$('open-sample').onclick = openSample; $('error-sample').onclick = openSample;
+$('exit-sample').onclick = async () => { clearPrivateView(); stopSample(); await loadApp(); };
+$('retry-load').onclick = () => loadApp();
 function connectivity() { $('offline').hidden = navigator.onLine; }
 window.addEventListener('offline', connectivity); window.addEventListener('online', connectivity); connectivity();
 if (native) {
   $('owner-link').hidden = true;
-  App.addListener('backButton', () => { if (currentView === 'booking') $('booking-back').click(); else if (me?.profile) show('home'); else show('gallery'); });
+  App.addListener('backButton', () => { if (currentView === 'booking') $('booking-back').click(); else if (currentView === 'support') show(supportReturn); else if (me?.profile && currentView !== 'home') show('home'); else if (!me?.profile && currentView !== 'gallery') show('gallery'); else App.minimizeApp().catch(() => {}); });
   App.addListener('appStateChange', ({ isActive }) => { if (isActive && me?.profile) refresh().catch(e => status('settings-status', e.message, true)); });
 } else if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
-(async () => {
+async function loadApp() {
   try {
+    $('load-error').hidden = true; $('loading').hidden = false; $('loading').textContent = 'Opening Salt Partners…';
     config = await api('config'); $('preview-banner').hidden = !config.demo;
     renderGallery();
     selectedCompany = config.companies.find(c => c.id === companyId) || null;
     try { await refresh(); if (me.profile) show(deletionRequested ? 'account' : 'home'); }
     catch (error) { if (error.status !== 401) throw error; me = null; if (selectedCompany) { renderWelcome(selectedCompany); show('welcome'); } else show('gallery'); }
-  } catch (error) { $('loading').textContent = 'Salt Partners could not load. Check your connection and refresh. ' + error.message; }
-})();
+  } catch {
+    for (const section of $('main').children) if (section.tagName === 'SECTION') section.hidden = true;
+    $('loading').hidden = true; $('load-error').hidden = false; $('tabs').hidden = true; $('public-footer').hidden = false;
+  }
+}
+loadApp();

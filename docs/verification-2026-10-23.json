@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-23",
+  "status": "review_ready_submission_blocked",
+  "preview": "https://partner-app-review--simply-salt-partner-demo.netlify.app",
+  "deployId": "6adbd58845cb267391e1d70d",
+  "automatedTests": { "passed": 36, "failed": 0 },
+  "productionDependencyAudit": { "reportedVulnerabilities": 0 },
+  "builds": { "web": "passed", "nativeAssetSync": "passed", "signedIosArchive": "not_built", "signedAndroidBundle": "not_built" },
+  "hostedChecks": {
+    "publicAppSupportPrivacyDeletion": "HTTP 200",
+    "privateTechnicianAndOwnerApis": "HTTP 401 when unauthenticated; private,no-store",
+    "companies": 4,
+    "phoneVerificationConfigured": true,
+    "realBookingEnabled": false,
+    "serverDemoFlag": false,
+    "publicSampleWorkspace": "passed; in-memory; no live provider access",
+    "browserConsoleErrorsDuringSampleWalkthrough": 0
+  },
+  "browserChecks": [
+    "320px gallery, sample Home and Account fit without horizontal overflow",
+    "390px company gallery and sample workspace visually reviewed",
+    "Sample booking confirmation and referral history",
+    "Sample payout destination save and removal",
+    "Sample zero-dollar sticker request and status history",
+    "Sample deletion returns to sign-in without altering real accounts",
+    "Local fake SMS registration, pending membership, owner approval",
+    "Returning local account restores its original company",
+    "Phone re-verification returns to Account",
+    "Local owner adds and renames a company; gallery updates without rebuilding"
+  ],
+  "nativeSourceChecks": [
+    "iOS Swift package paths use portable forward slashes",
+    "App privacy manifest parses and is included in Xcode resources",
+    "Android targets API 36",
+    "Native HTML includes HTTPS content policy",
+    "Owner HTML and scripts excluded from native assets",
+    "Store listing name, subtitle and short description fit character limits"
+  ],
+  "notPerformed": [
+    "Developer account purchase or enrollment completion",
+    "Store listing upload or submission",
+    "Real SMS or controlled real booking",
+    "Legacy n8n export or migration",
+    "Real payment or printer order",
+    "Signed native builds or execution on real devices"
+  ],
+  "ownerApprovedSubmission": false,
+  "screenshotsFolder": "../outputs/store-audit-2026-10-23 (workspace output folder, not store screenshots)"
+}

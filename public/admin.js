@@ -18,6 +18,14 @@ async function action(button, fn) {
 }
 function button(label, fn) { const b = el('button', label, 'secondary'); b.type = 'button'; b.onclick = () => action(b, fn); return b; }
 function companyName(id) { return state.companies.find(c => c.id === id)?.name || id; }
+function companyEditor(company) {
+  const details = el('details'), summary = el('summary', company.name), form = el('form');
+  const name = el('input'); name.value = company.name; name.required = true; name.maxLength = 100; name.setAttribute('aria-label', 'Company name for ' + company.name);
+  const kind = el('input'); kind.value = company.kind; kind.required = true; kind.maxLength = 60; kind.setAttribute('aria-label', 'Business type for ' + company.name);
+  const save = el('button', 'Save company details', 'secondary'); save.type = 'submit';
+  form.append(name, kind, save); form.onsubmit = event => { event.preventDefault(); action(save, async () => { await api('company', { id: company.id, name: name.value, kind: kind.value }); await refresh(); message('Company details saved.'); }); };
+  details.append(summary, form); return details;
+}
 function table(headers, rows) {
   const t = el('table'), head = el('thead'), row = el('tr');
   headers.forEach(h => row.append(el('th', h))); head.append(row); t.append(head);
@@ -35,7 +43,7 @@ async function refresh() {
     for (const c of state.companies.filter(c => c.active)) $(selectId).add(new Option(c.name, c.id));
     if (state.companies.some(c => c.id === selected && c.active)) $(selectId).value = selected;
   }
-  $('businesses').replaceChildren(table(['Company', 'Type', 'Reward', 'Approved design', 'Status'], state.companies.map(c => [c.name, c.kind, money(c.bountyCents), c.design ? `${c.design.name} · v${c.design.version}` : 'Awaiting artwork', button(c.active ? 'Pause company' : 'Reactivate', async () => { await api('company', { id: c.id, name: c.name, kind: c.kind, active: !c.active }); await refresh(); })])));
+  $('businesses').replaceChildren(table(['Company · select name to edit', 'Type', 'Reward', 'Approved design', 'Status'], state.companies.map(c => [companyEditor(c), c.kind, money(c.bountyCents), c.design ? `${c.design.name} · v${c.design.version}` : 'Awaiting artwork', button(c.active ? 'Pause company' : 'Reactivate', async () => { await api('company', { id: c.id, name: c.name, kind: c.kind, active: !c.active }); await refresh(); })])));
   const invites = $('invitations'); invites.replaceChildren();
   for (const invite of state.invites.filter(i => !i.revokedAt && i.expiresAt > Date.now()).slice(-5)) {
     const item = el('div', undefined, 'order'); item.append(el('p', `${companyName(invite.companyId)} · ${invite.uses}/${invite.maxUses} used · expires ${date(new Date(invite.expiresAt).toISOString())}`), button('Revoke invitation', async () => { await api('revoke-invite', { id: invite.id }); await refresh(); })); invites.append(item);
@@ -84,6 +92,16 @@ async function fileData(input) {
   const file = input.files[0];
   if (!file || file.size > 2000000 || !['image/png', 'image/jpeg'].includes(file.type)) throw new Error('Choose a PNG or JPEG under 2 MB.');
   return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve({ base64: reader.result.split(',')[1], name: file.name }); reader.onerror = reject; reader.readAsDataURL(file); });
+}
+for (const id of ['design-file', 'image-file']) {
+  const input = $(id), preview = el('img', undefined, 'sticker-preview'); preview.alt = 'Selected file preview'; preview.hidden = true; input.after(preview);
+  let objectUrl;
+  input.onchange = () => {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    const file = input.files[0];
+    if (!file || file.size > 2000000 || !['image/png', 'image/jpeg'].includes(file.type)) { preview.hidden = true; if (file) message('Choose a PNG or JPEG under 2 MB.', true); return; }
+    objectUrl = URL.createObjectURL(file); preview.src = objectUrl; preview.hidden = false;
+  };
 }
 $('upload-design').onsubmit = event => { event.preventDefault(); action(event.currentTarget.querySelector('button'), async () => { const file = await fileData($('design-file')); await api('design', { companyId: $('design-company').value, name: $('design-name').value, base64: file.base64, approved: $('design-approved').checked }); await refresh(); message('Approved print design saved. Previous requests keep their original artwork.'); }); };
 $('upload-image').onsubmit = event => { event.preventDefault(); action(event.currentTarget.querySelector('button'), async () => { const file = await fileData($('image-file')); await api($('image-type').value, { companyId: $('image-company').value, ...file, illustrative: $('image-illustrative').checked }); await refresh(); message('Company image saved.'); }); };

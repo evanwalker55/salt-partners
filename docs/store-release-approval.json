@@ -1,0 +1,18 @@
+{
+  "status": "awaiting_owner_review",
+  "ownerApprovedSubmission": false,
+  "requirements": {
+    "developerAccountsVerified": false,
+    "permanentBackendConfirmed": false,
+    "legacyLedgerReconciled": false,
+    "realPhoneVerificationPassed": false,
+    "realBookingAndCompletionPassed": false,
+    "printArtworkAndQrAttributionApproved": false,
+    "privacyAndRewardTermsApproved": false,
+    "signedIosBuildTested": false,
+    "signedAndroidBuildTested": false,
+    "reviewerAccessVerified": false,
+    "storeScreenshotsAndDeclarationsApproved": false
+  },
+  "note": "Only record completion with evidence. User explicitly requires reviewing and approving changes before submission."
+}
