@@ -1,6 +1,11 @@
 {
-  "status": "awaiting_owner_review",
-  "ownerApprovedSubmission": false,
+  "status": "owner_authorized_preparation_and_submission_pending_verification",
+  "ownerApprovedSubmission": true,
+  "ownerAuthorization": {
+    "date": "2026-10-30",
+    "scope": "Continue organization enrollments, prepare builds, and upload the app for store review. Owner handles payment.",
+    "source": "Direct user instruction in the Simply Salt partner app chat on October 30, 2026."
+  },
   "requirements": {
     "developerAccountsVerified": false,
     "permanentBackendConfirmed": false,
@@ -14,5 +19,5 @@
     "reviewerAccessVerified": false,
     "storeScreenshotsAndDeclarationsApproved": false
   },
-  "note": "Only record completion with evidence. User explicitly requires reviewing and approving changes before submission."
+  "note": "Only record completion with evidence. The owner's October 30 instruction authorizes preparation and submission; it supersedes the earlier request for a separate submission approval. Required technical and verification checks remain incomplete."
 }
