@@ -342,7 +342,7 @@ $('retry-load').onclick = () => loadApp();
 function connectivity() { $('offline').hidden = navigator.onLine; }
 window.addEventListener('offline', connectivity); window.addEventListener('online', connectivity); connectivity();
 if (native) {
-  $('owner-link').hidden = true;
+  $('owner-link')?.remove();
   App.addListener('backButton', () => { if (currentView === 'booking') $('booking-back').click(); else if (currentView === 'support') show(supportReturn); else if (me?.profile && currentView !== 'home') show('home'); else if (!me?.profile && currentView !== 'gallery') show('gallery'); else App.minimizeApp().catch(() => {}); });
   App.addListener('appStateChange', ({ isActive }) => { if (isActive && me?.profile) refresh().catch(e => status('settings-status', e.message, true)); });
 } else if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

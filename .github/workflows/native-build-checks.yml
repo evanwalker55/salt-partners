@@ -77,6 +77,7 @@ jobs:
             adb shell pidof com.simplysalt.partners
             adb exec-out screencap -p > android-first-launch.png
             adb logcat -d -s Capacitor:V AndroidRuntime:E > android-first-launch.log
+            if grep -q 'JavaScript Error:' android-first-launch.log; then cat android-first-launch.log; exit 1; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
