@@ -10,6 +10,10 @@ Artifacts are retained for 14 days:
 
 - Android: unsigned release AAB, a debug-signed installation APK, and lint report.
 - iOS: unsigned device archive and compiler log.
+- Native launch evidence: the installed Android app on an API 36 emulator and
+  the iPhone app on an available iOS simulator, with first-launch screenshots.
+  These checks open the public company gallery and never request a verification
+  text, make a booking, or change production records.
 
 These artifacts use the existing review API origin. They establish native
 compilation, not production readiness, device-test completion, app signing,

@@ -60,6 +60,31 @@ jobs:
             android/app/build/outputs/bundle/release/*.aab
             android/app/build/outputs/apk/debug/*.apk
             android/app/build/reports/lint-results-release.html
+      - name: Enable emulator acceleration in the temporary runner
+        run: test -w /dev/kvm || sudo chmod a+rw /dev/kvm
+      - name: Launch the installed Android app
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          emulator-boot-timeout: 420
+          disable-animations: true
+          script: |
+            adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+            adb shell am start -W -n com.simplysalt.partners/.MainActivity
+            sleep 12
+            adb shell pidof com.simplysalt.partners
+            adb exec-out screencap -p > android-first-launch.png
+            adb logcat -d -s Capacitor:V AndroidRuntime:E > android-first-launch.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-native-launch-evidence
+          retention-days: 14
+          path: |
+            android-first-launch.png
+            android-first-launch.log
 
   ios:
     name: iOS release compilation
@@ -103,3 +128,29 @@ jobs:
           path: |
             ${{ runner.temp }}/SaltPartners-unsigned.xcarchive.zip
             ${{ runner.temp }}/ios-build.log
+      - name: Build and launch the iPhone simulator app
+        run: |
+          set -euo pipefail
+          xcodebuild -project ios/App/App.xcodeproj -scheme App \
+            -configuration Release -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/ios-simulator" \
+            CODE_SIGNING_ALLOWED=NO build > "$RUNNER_TEMP/ios-simulator-build.log" 2>&1 || {
+              tail -n 100 "$RUNNER_TEMP/ios-simulator-build.log"
+              exit 1
+            }
+          DEVICE_ID="$(xcrun simctl list devices available -j | python3 -c 'import json,sys; data=json.load(sys.stdin); matches=[d["udid"] for runtime,devices in data["devices"].items() if ".iOS-" in runtime for d in devices if d.get("isAvailable") and d["name"].startswith("iPhone")]; print(matches[0] if matches else "")')"
+          test -n "$DEVICE_ID"
+          xcrun simctl boot "$DEVICE_ID"
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+          xcrun simctl install "$DEVICE_ID" "$RUNNER_TEMP/ios-simulator/Build/Products/Release-iphonesimulator/App.app"
+          xcrun simctl launch "$DEVICE_ID" com.simplysalt.partners
+          sleep 12
+          xcrun simctl io "$DEVICE_ID" screenshot "$RUNNER_TEMP/ios-first-launch.png"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-native-launch-evidence
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/ios-first-launch.png
+            ${{ runner.temp }}/ios-simulator-build.log
