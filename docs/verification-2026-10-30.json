@@ -30,7 +30,7 @@
   },
   "developerAccounts": {
     "apple": "Company organization enrollment submitted; confirmation page and Apple receipt email verified. Apple verifying legal signing authority; next enrollment and membership payment instructions pending.",
-    "google": "Paid organization account created; original state Articles of Organization uploaded and Organization shows Submitted. Website ownership verified in Search Console and Play Console. Authorized representative mobile identity check, document approval, then phone-number verification remain. App creation disabled until verification completes."
+    "google": "Paid organization account created. Original state Articles of Organization submitted; authorized representative completed mobile identity verification and Google confirms In review. Website verified in Search Console and Play Console. Google is checking uploaded documents; phone-number verification and app creation remain blocked until account checks complete."
   },
   "backend": {
     "companies": 4,
