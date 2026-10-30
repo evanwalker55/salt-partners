@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-30",
+  "sourceRevision": "8d10b747c2721b0fbbe20b8dfb01049f0185c9f5",
+  "compilationRun": "https://github.com/evanwalker55/salt-partners/actions/runs/41118505736",
+  "android": {
+    "releaseCompilation": "passed",
+    "releaseLint": "passed",
+    "ownerAssetsExcluded": true,
+    "releaseBundle": "signed locally; JAR signature and Google bundletool validation passed",
+    "bundleSha256": "BA0BBB7FC4E0E2D4308472C30E5D4D1ADC9863093C91321DBED01AA28722588F",
+    "simulatorFirstLaunch": "Android API 36 debug APK opened public company gallery; screenshot inspected",
+    "physicalDeviceTest": "not performed",
+    "versionCode": 1,
+    "versionName": "1.0",
+    "appId": "com.simplysalt.partners",
+    "sharedNativeLibraries": 0
+  },
+  "ios": {
+    "releaseCompilation": "passed with Xcode 26",
+    "archive": "unsigned; Apple organization signing identity pending",
+    "simulatorFirstLaunch": "iPhone simulator opened public company gallery; screenshot inspected",
+    "physicalDeviceTest": "not performed"
+  },
+  "nativeLaunchStatus": "passed on Android and iOS simulators; screenshots inspected",
+  "startupFix": "Optional owner-link was absent from native markup and caused null.hidden exception. Guarded removal and regression test added. Earlier release candidate marked invalid.",
+  "localAutomatedTests": {
+    "note": "Includes one pre-existing uncommitted hub-read test; those changes were preserved and not committed.",
+    "passed": 38,
+    "failed": 0
+  },
+  "developerAccounts": {
+    "apple": "Company organization enrollment submitted; Apple verifying signing authority; membership payment pending",
+    "google": "All organization enrollment form steps completed in native Chrome as evan@simplysalt.com; existing LLC payments profile linked, emails verified. Final required agreements and owner one-time USD 25 payment pending. Optional feedback and promotional mailings off."
+  },
+  "backend": {
+    "companies": 4,
+    "configHttpStatus": 200,
+    "liveBookingEnabled": false,
+    "origin": "https://partner-app-review--simply-salt-partner-demo.netlify.app",
+    "verificationConfigured": true
+  },
+  "submission": {
+    "appSubmitted": false,
+    "ownerAuthorized": true,
+    "remaining": "Developer account verification/payment, production readiness, signed iOS export, and end-to-end device evidence incomplete",
+    "paymentsChargedByAgent": false
+  }
+}

@@ -1,6 +1,6 @@
-# Launch readiness — updated October 23, 2026
+# Launch readiness — updated October 30, 2026
 
-The October 23 audit and fixes are recorded in `store-audit-2026-10-23.html`. Submission is explicitly awaiting owner approval. Run `npm run release:check` to list evidence still required; it deliberately blocks while release gates remain incomplete.
+The October 23 audit and fixes are recorded in `store-audit-2026-10-23.html`. On October 30 the owner authorized continuing enrollment and preparing/uploading the app for store review, with payment handled by the owner. Run `npm run release:check` to list evidence still required; authorization does not complete the technical and account-verification checks.
 
 ## Implemented
 
@@ -19,7 +19,10 @@ Public company gallery; company-specific generated tank mockups; verified phone 
 ## iOS and Android release work
 
 - Confirm Simply Salt owns the Apple Developer and Google Play developer accounts and final application IDs. The prepared ID is `com.simplysalt.partners`; registration availability has not been checked.
-- Build, sign, and test on real iPhone and Android devices. Current host did not provide Xcode or a configured Java/Android build toolchain. Native projects were generated; no signed IPA/AAB was built.
+- Android release compilation and lint passed on GitHub's Linux runner; an iOS device archive compiled on its Xcode 26 Mac runner. Both installed apps opened the public company gallery on simulators. Evidence: https://github.com/evanwalker55/salt-partners/actions/runs/41118505736 (source revision `8d10b74`).
+- An Android upload key was generated and retained privately on the owner's computer. The release AAB was signed locally, its JAR signature verified, and Google bundletool 1.18.3 validation passed. No signing key or password was uploaded to GitHub.
+- The iOS archive is unsigned. Finish Apple organization enrollment, establish the team's signing identity, then archive/export the store build. Build and signing preparation do not establish real-device testing or successful production authentication.
+- Native first-launch screenshots were inspected for Android API 36 and the iPhone simulator. They exposed a startup crash caused by accessing an owner link omitted from native packaging; that crash is fixed and covered by a regression test. The earlier signed candidate was marked invalid and replaced with the `8d10b74` bundle. Keep real-phone verification, booking, account recovery, native sharing, and deletion evidence separate from simulator startup checks.
 - Validate native cookie persistence and cross-origin network behavior with the final HTTPS backend. Ensure no development URL, sample account, debug code, or test fixture is bundled.
 - Prepare accurate screenshots, descriptions, support/privacy URLs, age/content ratings, and Apple App Privacy/Google Data safety disclosures. Include names, phones, service/shipping addresses, payout identifiers, and app activity as applicable. Do not claim no data collection.
 - Give reviewers a working account and sample QR if applicable. Reviewers must be able to inspect the actual functionality without contacting the owner for every action. Do not add a hidden review-only authentication bypass.
