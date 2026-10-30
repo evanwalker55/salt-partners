@@ -9,6 +9,7 @@ on:
       - ios/**
       - public/**
       - scripts/**
+      - tests/**
       - package.json
       - package-lock.json
       - capacitor.config.json

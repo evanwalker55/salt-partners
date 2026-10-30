@@ -7,9 +7,10 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 
 test('native startup without owner-only markup registers navigation and begins loading the API', async () => {
-  const markup = await readFile(new URL('../android/app/src/main/assets/public/index.html', import.meta.url), 'utf8');
-  const nodes = new Map([...markup.matchAll(/\bid="([^"]+)"/g)].map(([, id]) => [id, { hidden: false }]));
-  assert.equal(nodes.has('owner-link'), false, 'the packaged mobile page excludes owner access');
+  const markup = await readFile(new URL('../public/index.html', import.meta.url), 'utf8');
+  // Exercise the native DOM variant without requiring generated, untracked build output.
+  const nodes = new Map([...markup.matchAll(/\bid="([^"]+)"/g)]
+    .filter(([, id]) => id !== 'owner-link').map(([, id]) => [id, { hidden: false }]));
   const mocks = {
     '@capacitor/core': 'export const Capacitor={isNativePlatform:()=>true}; export const CapacitorHttp={};',
     '@capacitor/app': 'export const App={addListener(name){globalThis.nativeEvents.push(name);return Promise.resolve({remove(){}})},minimizeApp:()=>Promise.resolve()};',
