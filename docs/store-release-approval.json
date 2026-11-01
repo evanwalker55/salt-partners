@@ -11,7 +11,7 @@
     "permanentBackendConfirmed": true,
     "legacyLedgerReconciled": true,
     "realPhoneVerificationPassed": true,
-    "realAccountRecoveryPassed": false,
+    "realAccountRecoveryPassed": true,
     "realBookingAndCompletionPassed": false,
     "printArtworkAndQrAttributionApproved": false,
     "privacyAndRewardTermsApproved": false,
@@ -25,8 +25,18 @@
     "phoneVerification": {
       "source": "Live production web-app sign-in test with the owner's expressly authorized mobile number on November 1, 2026",
       "result": "Owner received the six-digit Twilio Verify code; the app accepted it and displayed Your phone is verified. Account setup remained available after a full page refresh.",
-      "scope": "Real SMS delivery, verification, and browser session persistence passed. Company profile setup and account recovery remain pending. Native signed-build authentication has not been established by this web test.",
+      "scope": "Real SMS delivery, verification, browser session persistence, company profile creation, and signed-out account recovery passed. Native signed-build authentication has not been established by this web test.",
       "privacy": "Verification code was used only in the sign-in form and was not retained in files."
+    },
+    "accountRecovery": {
+      "company": "Simply Water",
+      "result": "Created the owner's requested test profile. After sign-out, opened Prime's public card, verified the same mobile with a new code, and returned directly to the original Simply Water account.",
+      "membership": "pending; normal owner-approval gate remains in force",
+      "recordCheck": "Exactly one technician, zero referrals, zero sticker orders; live booking remains paused."
+    },
+    "housecallProIdentity": {
+      "result": "Authenticated GET /company returned Simply Salt; its ID matched the configured HCP_COMPANY_ID.",
+      "checked": "2026-11-01"
     },
     "google": {
       "organizationVerified": true,
