@@ -8,8 +8,8 @@
   },
   "requirements": {
     "developerAccountsVerified": false,
-    "permanentBackendConfirmed": false,
-    "legacyLedgerReconciled": false,
+    "permanentBackendConfirmed": true,
+    "legacyLedgerReconciled": true,
     "realPhoneVerificationPassed": false,
     "realBookingAndCompletionPassed": false,
     "printArtworkAndQrAttributionApproved": false,
@@ -19,5 +19,30 @@
     "reviewerAccessVerified": false,
     "storeScreenshotsAndDeclarationsApproved": false
   },
-  "note": "Only record completion with evidence. The owner's October 30 instruction authorizes preparation and submission; it supersedes the earlier request for a separate submission approval. Required technical and verification checks remain incomplete."
+  "evidence": {
+    "updated": "2026-11-01",
+    "google": {
+      "organizationVerified": true,
+      "appCreated": true,
+      "developerAccountId": "9078068141318477297",
+      "appId": "4976444591082636366",
+      "package": "com.simplysalt.partners",
+      "status": "Draft; no release submitted"
+    },
+    "apple": {
+      "enrollmentId": "84833RHTX2",
+      "status": "Organization enrollment processing; membership not yet paid"
+    },
+    "backend": {
+      "origin": "https://simply-salt-partner-demo.netlify.app",
+      "deploy": "6ae7ac6e727723dacb66966c",
+      "checks": "Config, privacy, support, and deletion URLs returned HTTP 200. Native build workflow uses this stable origin. Live booking remains paused."
+    },
+    "legacy": {
+      "source": "Owner confirmation in this chat on November 1, 2026",
+      "confirmation": "Original alpha contained only demos/tests, with no real customer bookings, earned rewards, or payouts.",
+      "newStore": "Zero technicians, referrals, and sticker orders. A guarded CAS update recorded legacyReconciled=true at revision 4; bookingEnabled remains false. No original records were deleted."
+    }
+  },
+  "note": "Only record completion with evidence. The owner's October 30 instruction authorizes preparation and submission; it supersedes the earlier request for a separate submission approval. Required technical and verification checks remain incomplete. Google is verified; the combined developerAccountsVerified gate remains false while Apple is processing."
 }

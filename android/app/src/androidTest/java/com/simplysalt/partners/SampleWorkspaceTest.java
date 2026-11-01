@@ -52,7 +52,18 @@ public class SampleWorkspaceTest {
     }
 
     private void capture(String name) throws Exception {
-        // Allow image decoding and fonts to settle after the section assertion.
+        // Wait for Chromium to commit the DOM change before capturing the next draw.
+        CountDownLatch rendered = new CountDownLatch(1);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+            webView.postVisualStateCallback(0, new WebView.VisualStateCallback() {
+                @Override public void onComplete(long requestId) {
+                    webView.postInvalidateOnAnimation();
+                    rendered.countDown();
+                }
+            }));
+        assertTrue("WebView did not commit its visual state", rendered.await(10, TimeUnit.SECONDS));
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        // Allow image decoding and the subsequent native draw to settle.
         SystemClock.sleep(800);
         Bitmap screenshot = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
         assertNotNull("Native screenshot unavailable", screenshot);
