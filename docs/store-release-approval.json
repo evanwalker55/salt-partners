@@ -10,7 +10,8 @@
     "developerAccountsVerified": false,
     "permanentBackendConfirmed": true,
     "legacyLedgerReconciled": true,
-    "realPhoneVerificationPassed": false,
+    "realPhoneVerificationPassed": true,
+    "realAccountRecoveryPassed": false,
     "realBookingAndCompletionPassed": false,
     "printArtworkAndQrAttributionApproved": false,
     "privacyAndRewardTermsApproved": false,
@@ -21,6 +22,12 @@
   },
   "evidence": {
     "updated": "2026-11-01",
+    "phoneVerification": {
+      "source": "Live production web-app sign-in test with the owner's expressly authorized mobile number on November 1, 2026",
+      "result": "Owner received the six-digit Twilio Verify code; the app accepted it and displayed Your phone is verified. Account setup remained available after a full page refresh.",
+      "scope": "Real SMS delivery, verification, and browser session persistence passed. Company profile setup and account recovery remain pending. Native signed-build authentication has not been established by this web test.",
+      "privacy": "Verification code was used only in the sign-in form and was not retained in files."
+    },
     "google": {
       "organizationVerified": true,
       "appCreated": true,
