@@ -23,9 +23,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Build checks exercise the existing review backend. This is not approval
-  # of a permanent production origin or a signed store submission.
-  SALT_NATIVE_API_ORIGIN: https://partner-app-review--simply-salt-partner-demo.netlify.app
+  # Use the stable deployed backend. Live booking remains paused separately.
+  # A passing build does not authorize store submission.
+  SALT_NATIVE_API_ORIGIN: https://simply-salt-partner-demo.netlify.app
 
 jobs:
   android:
@@ -81,7 +81,7 @@ jobs:
             adb logcat -d -s Capacitor:V AndroidRuntime:E > android-first-launch.log
             if grep -q 'JavaScript Error:' android-first-launch.log; then cat android-first-launch.log; exit 1; fi
             bash android/gradlew --no-daemon -p android :app:connectedDebugAndroidTest
-            adb pull /sdcard/Android/data/com.simplysalt.partners/files/store-screenshots android-store-screenshots
+            test "$(find android/app/build/outputs/connected_android_test_additional_output -name '*.png' | wc -l)" -eq 6
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -90,7 +90,7 @@ jobs:
           path: |
             android-first-launch.png
             android-first-launch.log
-            android-store-screenshots/
+            android/app/build/outputs/connected_android_test_additional_output/
             android/app/build/reports/androidTests/
 
   ios:

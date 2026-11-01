@@ -12,9 +12,9 @@ import android.webkit.WebView;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.platform.io.PlatformTestStorageRegistry;
 import androidx.test.espresso.web.webdriver.Locator;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -56,9 +56,8 @@ public class SampleWorkspaceTest {
         SystemClock.sleep(800);
         Bitmap screenshot = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
         assertNotNull("Native screenshot unavailable", screenshot);
-        File directory = new File(InstrumentationRegistry.getInstrumentation().getTargetContext().getExternalFilesDir(null), "store-screenshots");
-        assertTrue(directory.isDirectory() || directory.mkdirs());
-        try (FileOutputStream output = new FileOutputStream(new File(directory, name + ".png"))) {
+        // Gradle pulls test output before uninstalling the instrumented application.
+        try (OutputStream output = PlatformTestStorageRegistry.getInstance().openOutputFile(name + ".png")) {
             assertTrue(screenshot.compress(Bitmap.CompressFormat.PNG, 100, output));
         }
         screenshot.recycle();
