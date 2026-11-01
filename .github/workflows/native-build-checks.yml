@@ -51,7 +51,7 @@ jobs:
       - run: npm run native:sync
       - name: Compile Android App Bundle and test APK
         working-directory: android
-        run: bash gradlew --no-daemon bundleRelease assembleDebug lintRelease
+        run: bash gradlew --no-daemon bundleRelease assembleDebug assembleDebugAndroidTest lintRelease
       - uses: actions/upload-artifact@v4
         with:
           name: android-unsigned-release-and-debug
@@ -69,6 +69,7 @@ jobs:
           api-level: 36
           target: google_apis
           arch: x86_64
+          profile: pixel_2
           emulator-boot-timeout: 420
           disable-animations: true
           script: |
@@ -79,6 +80,10 @@ jobs:
             adb exec-out screencap -p > android-first-launch.png
             adb logcat -d -s Capacitor:V AndroidRuntime:E > android-first-launch.log
             if grep -q 'JavaScript Error:' android-first-launch.log; then cat android-first-launch.log; exit 1; fi
+            cd android
+            bash gradlew --no-daemon connectedDebugAndroidTest
+            cd ..
+            adb pull /sdcard/Android/data/com.simplysalt.partners/files/store-screenshots android-store-screenshots
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -87,6 +92,8 @@ jobs:
           path: |
             android-first-launch.png
             android-first-launch.log
+            android-store-screenshots/
+            android/app/build/reports/androidTests/
 
   ios:
     name: iOS release compilation
