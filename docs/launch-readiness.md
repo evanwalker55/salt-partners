@@ -1,6 +1,8 @@
-# Launch readiness — updated October 30, 2026
+# Launch readiness — updated November 1, 2026
 
 The October 23 audit and fixes are recorded in `store-audit-2026-10-23.html`. On October 30 the owner authorized continuing enrollment and preparing/uploading the app for store review, with payment handled by the owner. Run `npm run release:check` to list evidence still required; authorization does not complete the technical and account-verification checks.
+
+Google organization verification is complete. Simply Salt Partners has been created as a free app draft (`com.simplysalt.partners`), with its listing and content declarations saved pending review. The latest Android/iOS build check passed: https://github.com/evanwalker55/salt-partners/actions/runs/41352677603 (`d8af9c0`). The signed Android 1.0 (1) bundle has been accepted into a production-track draft; it has not been submitted or published. Apple organization enrollment is still processing. Detailed console preparation is recorded in `google-play-preparation-2026-11-01.md`.
 
 ## Implemented
 
@@ -8,17 +10,17 @@ Public company gallery; company-specific generated tank mockups; verified phone 
 
 ## Required before handing this to partners
 
-1. Export and reconcile the old n8n technician/referral/event tables. Current API access is expired. Existing paid/earned totals must match, and old records must not disappear when users sign in to the new app.
+1. Legacy reconciliation is satisfied by the owner's November 1 confirmation that the original alpha contained demos/tests only, with no real bookings, earned rewards, or payouts. The new store contained no technicians, referrals, or sticker requests. A guarded update recorded this confirmation without deleting old data; live booking remains paused.
 2. Complete a real phone-verification and account-recovery check using the owner's number. No real SMS was sent during development. Confirm Twilio service budget, branding, geographic permissions, and production delivery behavior.
 3. Approve real print artwork for each company. The AI tank images are illustrative only. Decode the original artwork's QR, confirm the destination and offer, and preserve a company/technician source identifier through the customer booking flow. The current implementation attributes authenticated technician bookings; it does not retrofit attribution into an external website reached by an old printed QR.
 4. Review the privacy/retention wording and the operational process for settling outstanding rewards and erasing retained data. The code provides deletion controls, but privacy declarations must describe actual practice across Netlify, Twilio, HCP, payment services, and fulfillment providers.
 5. Verify HCP credentials belong to the intended Simply Salt company. Test route availability and daylight-saving dates. Use an explicitly authorized controlled real booking and reconcile its effects; no production test booking was made in this task. Confirm the desired policy on repeat customers and rewards; this version preserves $25 per completed referred job from the alpha.
 6. Verify owner exports, access controls, storage recovery, unpaid reward reconciliation, paused companies, invitation revocation, and a failed/uncertain booking. Resolve uncertain HCP outcomes by the embedded referral reference before any retry.
-7. Select the final app/API address and deployment. Switch the GitHub Pages entry point only after the original ledger is reconciled. Remove the old public app credential from n8n booking authorization after cutover, and give the new server its own private availability credential. Preserve legitimate partner-to-partner API integrations and keys. A draft deploy is for review, not the partner launch.
+7. The stable app/API origin is now `https://simply-salt-partner-demo.netlify.app`, with privacy, support, and account-deletion pages available publicly. The native workflow uses that origin. The old GitHub Pages alpha remains untouched while real launch checks are pending. Remove the old public app credential from n8n booking authorization after cutover, preserving legitimate integrations. The new server already uses its own private availability credential. Deployment is for review, not the partner launch.
 
 ## iOS and Android release work
 
-- Confirm Simply Salt owns the Apple Developer and Google Play developer accounts and final application IDs. The prepared ID is `com.simplysalt.partners`; registration availability has not been checked.
+- The verified Google organization owns the new app draft and accepted package `com.simplysalt.partners`. Apple organization enrollment is processing; registration/signing on Apple remains pending.
 - Android release compilation and lint passed on GitHub's Linux runner; an iOS device archive compiled on its Xcode 26 Mac runner. Both installed apps opened the public company gallery on simulators. Evidence: https://github.com/evanwalker55/salt-partners/actions/runs/41118505736 (source revision `8d10b74`).
 - An Android upload key was generated and retained privately on the owner's computer. The release AAB was signed locally, its JAR signature verified, and Google bundletool 1.18.3 validation passed. No signing key or password was uploaded to GitHub.
 - The iOS archive is unsigned. Finish Apple organization enrollment, establish the team's signing identity, then archive/export the store build. Build and signing preparation do not establish real-device testing or successful production authentication.

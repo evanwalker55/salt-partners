@@ -27,7 +27,10 @@
       "developerAccountId": "9078068141318477297",
       "appId": "4976444591082636366",
       "package": "com.simplysalt.partners",
-      "status": "Draft; no release submitted"
+      "status": "Listing, declarations, and signed Android 1.0 (1) saved as pending changes; no release submitted",
+      "countries": ["United States"],
+      "buildCheckRun": "https://github.com/evanwalker55/salt-partners/actions/runs/41352677603",
+      "androidUploadSha256": "2f403dfd21a330c4ad9c0e8ca35ab64e836866eb150837c41ee20b0ed04f4a53"
     },
     "apple": {
       "enrollmentId": "84833RHTX2",
@@ -35,8 +38,8 @@
     },
     "backend": {
       "origin": "https://simply-salt-partner-demo.netlify.app",
-      "deploy": "6ae7ac6e727723dacb66966c",
-      "checks": "Config, privacy, support, and deletion URLs returned HTTP 200. Native build workflow uses this stable origin. Live booking remains paused."
+      "deploy": "6ae7b0a6f1bd3d7b7fcb788a",
+      "checks": "Config, privacy, support, and deletion URLs returned HTTP 200. The live policy includes Railway scheduling automation. Native build workflow uses this stable origin. Live booking remains paused."
     },
     "legacy": {
       "source": "Owner confirmation in this chat on November 1, 2026",
