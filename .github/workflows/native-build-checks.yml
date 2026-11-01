@@ -80,9 +80,7 @@ jobs:
             adb exec-out screencap -p > android-first-launch.png
             adb logcat -d -s Capacitor:V AndroidRuntime:E > android-first-launch.log
             if grep -q 'JavaScript Error:' android-first-launch.log; then cat android-first-launch.log; exit 1; fi
-            cd android
-            bash gradlew --no-daemon :app:connectedDebugAndroidTest
-            cd ..
+            bash android/gradlew --no-daemon -p android :app:connectedDebugAndroidTest
             adb pull /sdcard/Android/data/com.simplysalt.partners/files/store-screenshots android-store-screenshots
       - uses: actions/upload-artifact@v4
         if: always()
