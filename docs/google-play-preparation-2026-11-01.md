@@ -61,4 +61,6 @@ The runtime dependency audit (`npm audit --omit=dev`) reports zero known vulnera
 
 ## Remaining release work
 
+The production reviewer entry was exercised from the signed-out gallery on November 1: Explore sample workspace required no phone code or account, a sample booking reached confirmation, and a sample 50-sticker request showed $0 due. Exiting restored the public gallery. The production store was checked afterward: one technician, zero referrals, zero sticker requests, booking paused. Screenshot: `outputs/google-play-preparation-2026-11-01/reviewer-sample-sticker-test.png`. This clears reviewer-access evidence without establishing signed Android real-account or provider-booking behavior. The owner was asked for an Android tester account and explicitly authorized live-booking details before those tests proceed.
+
 Keep the release as a draft and live booking paused until controlled booking/completion, print artwork/QR attribution, privacy/reward operations, and native device behavior are verified. A simulator/sample test does not establish those checks. Apple enrollment is still processing; its iOS archive remains unsigned. `npm run release:check` reports the outstanding gates. Real mobile verification, company profile creation, browser session persistence, and returning-account recovery have passed.

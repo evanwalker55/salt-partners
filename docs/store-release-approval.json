@@ -17,7 +17,7 @@
     "privacyAndRewardTermsApproved": false,
     "signedIosBuildTested": false,
     "signedAndroidBuildTested": false,
-    "reviewerAccessVerified": false,
+    "reviewerAccessVerified": true,
     "storeScreenshotsAndDeclarationsApproved": false
   },
   "evidence": {
@@ -37,6 +37,13 @@
     "housecallProIdentity": {
       "result": "Authenticated GET /company returned Simply Salt; its ID matched the configured HCP_COMPANY_ID.",
       "checked": "2026-11-01"
+    },
+    "reviewerAccess": {
+      "checked": "2026-11-01",
+      "result": "From the signed-out public gallery, Explore sample workspace opened without SMS, an account, or an invitation. Completed a sample booking and a sample 50-sticker request showing $0 due; exiting returned to the public gallery and cleared the sample view.",
+      "productionRecordCheck": "One technician, zero referrals, zero sticker orders, live booking paused after the sample actions.",
+      "evidenceImage": "outputs/google-play-preparation-2026-11-01/reviewer-sample-sticker-test.png",
+      "scope": "Production web reviewer entry verified. The existing native CI exercised sample screens; final signed Android installation and real authentication still require separate testing."
     },
     "google": {
       "organizationVerified": true,
