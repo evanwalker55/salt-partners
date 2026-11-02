@@ -28,6 +28,15 @@
       "approved": ["25 USD to the individual technician per eligible completed referral", "Owner sends payouts manually through Venmo, Zelle or Apple Cash", "Approved partnership stickers and standard shipping are free", "Account deletion retains only records needed to settle outstanding deliveries, rewards or shipments"],
       "scope": "Confirms the intended operations described in the existing partner terms and privacy policy; no policy rewrite or additional enrollment agreement is needed."
     },
+    "sessionExpiryFix": {
+      "checked": "2026-11-02",
+      "source": "ea1f8f0e2f0e9cbfb6a8be9c692a50807b61116e",
+      "problem": "A 401 from the Earnings refresh or native app-resume refresh left previously rendered private account details visible.",
+      "change": "Central API handling clears private fields and returns an authenticated user to sign-in on 401. Initial signed-out loading and network failures retain their separate behavior.",
+      "verification": "Reproduced with two tabs in the isolated sandbox, signed out in one, then refreshed Earnings in the other. Updated app showed session expired; name, payout and phone fields were empty and navigation hidden. Signing back in recovered the same Prime profile and dummy payout. A VM test of the compiled native client exercises revoked-session handling on appStateChange. Clean archived source passed all 41 committed tests and web build; runtime dependency audit found zero vulnerabilities.",
+      "limitations": "Native-plugin callbacks are mocked in the regression test; no real native SMS verification is established. The attempted browser viewport override remained 1280 pixels, so no new narrow-phone layout pass is claimed from it. CI Android sample instrumentation passed; its booking screenshot still captured the preceding dashboard and is excluded from listing evidence.",
+      "evidenceImage": "outputs/google-play-preparation-2026-11-01/session-expiry-fixed-2026-11-02.png"
+    },
     "phoneVerification": {
       "source": "Live production web-app sign-in test with the owner's expressly authorized mobile number on November 1, 2026",
       "result": "Owner received the six-digit Twilio Verify code; the app accepted it and displayed Your phone is verified. Account setup remained available after a full page refresh.",
@@ -82,13 +91,21 @@
       "developerAccountId": "9078068141318477297",
       "appId": "4976444591082636366",
       "package": "com.simplysalt.partners",
-      "status": "Private closed Alpha test, listing and declarations submitted on November 2; console shows Changes in review with quick checks running before review. Unsent production rollout withdrawn to exclude public launch; signed bundle remains in library and internal test remains active. No production binary submitted or publicly launched.",
+      "status": "Google published private closed build 1 and the listing/declarations November 2 at 2:10 AM Eastern. Fixed build 2 is active on the owner-only internal track, and its closed-track update is queued with quick checks before review. No production binary submitted or publicly launched. Signed real-account Android testing remains pending.",
       "countries": ["United States"],
-      "buildCheckRun": "https://github.com/evanwalker55/salt-partners/actions/runs/41352677603",
-      "androidUploadSha256": "2f403dfd21a330c4ad9c0e8ca35ab64e836866eb150837c41ee20b0ed04f4a53",
-      "internalTest": { "trackId": "4701464908151065210", "release": "1.0 (1) - private Android test", "published": true, "trackActive": true, "reviewed": false, "prelaunchReport": "No report available yet; native runtime verification remains pending", "testerList": "Simply Salt owner testing - one owner business Google account", "testerCount": 1, "optInUrl": "https://play.google.com/apps/internaltest/4701464908151065210", "evidenceImage": "outputs/google-play-preparation-2026-11-01/google-internal-test-active.png" },
-      "closedTest": { "trackId": "4700949629012591430", "release": "1.0 (1) - closed Android validation", "submitted": "2026-11-02", "status": "Changes in review; quick checks running before Google review", "testerList": "Simply Salt owner testing", "testerCount": 1, "scope": "Same accepted signed version 1.0 code 1; twelve changes sent include closed test, listing/declarations and United States country setting. Public production binary rollout excluded by withdrawing unsent release. No device report or approval yet.", "productionPreparation": { "withdrawnReleaseName": "1.0 (1) — initial partner release", "retainedBundleVersionCode": 1, "retainedReleaseNotes": "Initial release for participating Simply Salt partner technicians. Refer customers for salt delivery, follow referral rewards, save payout destinations, and request company partnership stickers.", "nextStep": "After Android runtime verification, prepare production release from retained library bundle; do not submit it merely because the closed test is approved." }, "evidenceImage": "outputs/google-play-preparation-2026-11-01/google-closed-test-submitted-2026-11-02.png" },
-      "listingReview": "Technical review complete: four unmodified Android sample screenshots and the icon/feature graphic were inspected; the stale booking screenshot was excluded. The US English Business listing, 18+ audience, cash-reward content rating, reward-feature disclosure, no-ads/AD_ID declarations, reviewer sample instructions, support/deletion URLs and source-audited Data safety answers match the prepared app. Owner business-rule confirmation passed November 2. Submitted with the private closed test; Google approval remains pending."
+      "buildCheckRun": "https://github.com/evanwalker55/salt-partners/actions/runs/41404791516",
+      "androidUploadSha256": "d6c687b12fb9517849f71db4832897408d1ec7e9b46cdaae06dc1d9bbcfb3733",
+      "currentCandidate": { "source": "ea1f8f0e2f0e9cbfb6a8be9c692a50807b61116e", "versionCode": 2, "versionName": "1.0", "signatureAndBundleValidation": "Passed locally with the existing private upload key; stable HTTPS origin verified", "nativeCi": "Android release compilation/lint, debug sample navigation and iOS unsigned compilation/simulator launch passed", "signedRuntime": "Pending; do not equate debug CI navigation or bundle validation with signed real-account testing" },
+      "internalTest": { "trackId": "4701464908151065210", "release": "1.0 (2) - session expiry fix", "published": true, "publishedAt": "2026-11-02 02:17 America/Indianapolis", "trackActive": true, "reviewed": false, "prelaunchReport": "No device results established; signed runtime verification remains pending", "testerList": "Simply Salt owner testing - one owner business Google account", "testerCount": 1, "optInUrl": "https://play.google.com/apps/internaltest/4701464908151065210", "evidenceImage": "outputs/google-play-preparation-2026-11-01/google-internal-build-2-active.png" },
+      "closedTest": {
+        "trackId": "4700949629012591430", "release": "1.0 (2) - closed session expiry fix", "submitted": "2026-11-02",
+        "status": "Changes in review; quick checks running before Google review", "testerList": "Simply Salt owner testing", "testerCount": 1,
+        "scope": "Same signed code 2 as internal testing. One closed-track release update sent; no production rollout included. Closed review or publication does not establish final signed real-account testing.",
+        "previousRelease": { "name": "1.0 (1) - closed Android validation", "published": "2026-11-02 02:10 America/Indianapolis", "status": "Active; Available to selected testers", "evidenceImage": "outputs/google-play-preparation-2026-11-01/google-closed-build-1-approved.png" },
+        "productionPreparation": { "withdrawnReleaseName": "1.0 (1) — initial partner release", "currentBundleVersionCode": 2, "retainedReleaseNotes": "Initial release for participating Simply Salt partner technicians. Refer customers for salt delivery, follow referral rewards, save payout destinations, and request company partnership stickers.", "nextStep": "After Android runtime verification, prepare production release from current code 2 library bundle; do not submit it merely because the closed test is approved." },
+        "evidenceImage": "outputs/google-play-preparation-2026-11-01/google-closed-build-2-submitted.png"
+      },
+      "listingReview": "Technical review complete: four unmodified Android sample screenshots and the icon/feature graphic were inspected; the stale booking screenshot was excluded. The US English Business listing, 18+ audience, cash-reward content rating, reward-feature disclosure, no-ads/AD_ID declarations, reviewer sample instructions, support/deletion URLs and source-audited Data safety answers match the app. Owner program-rule approval passed November 2. First closed release and listing/declarations published; build 2 update remains queued for review."
     },
     "apple": {
       "enrollmentId": "84833RHTX2",
@@ -96,8 +113,8 @@
     },
     "backend": {
       "origin": "https://simply-salt-partner-demo.netlify.app",
-      "deploy": "6ae7b0a6f1bd3d7b7fcb788a",
-      "checks": "Config, privacy, support, and deletion URLs returned HTTP 200. The live policy includes Railway scheduling automation. Native build workflow uses this stable origin. Live booking remains paused."
+      "deploy": "6ae8385ab071e6f3516a730e",
+      "checks": "Clean ea1f8f0 archive deployed November 2, excluding unrelated working-tree edits. Public gallery and sample primary navigation verified with no browser console errors. Exiting sample restored the gallery. Store readback remained one technician, zero referrals, zero sticker requests, booking paused. Stable origin and Railway policy disclosure retained."
     },
     "legacy": {
       "source": "Owner confirmation in this chat on November 1, 2026",
