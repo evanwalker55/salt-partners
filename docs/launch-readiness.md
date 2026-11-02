@@ -2,6 +2,8 @@
 
 The October 23 audit and fixes are recorded in `store-audit-2026-10-23.html`. On October 30 the owner authorized continuing enrollment and preparing/uploading the app for store review, with payment handled by the owner. Run `npm run release:check` to list evidence still required; authorization does not complete the technical and account-verification checks.
 
+For independent Google submission checks, run `npm run release:check -- --platform android`. It uses the recorded Google organization verification and Android signed-build evidence while retaining every shared release requirement. Apple enrollment and iOS signing remain required for `--platform ios` and the default combined check. The Android checker does not mark outstanding evidence complete.
+
 Google organization verification is complete. Simply Salt Partners has been created as a free app draft (`com.simplysalt.partners`), with its listing and content declarations saved pending review. The latest Android/iOS build check passed: https://github.com/evanwalker55/salt-partners/actions/runs/41352677603 (`d8af9c0`). The signed Android 1.0 (1) bundle has been accepted into a production-track draft; it has not been submitted or published. Apple organization enrollment is still processing. Detailed console preparation is recorded in `google-play-preparation-2026-11-01.md`.
 
 ## Implemented
