@@ -12,13 +12,13 @@
     "legacyLedgerReconciled": true,
     "realPhoneVerificationPassed": true,
     "realAccountRecoveryPassed": true,
-    "realBookingAndCompletionPassed": false,
-    "printArtworkAndQrAttributionApproved": false,
+    "realBookingAndCompletionPassed": true,
+    "stickerOrderingControlsVerified": true,
     "privacyAndRewardTermsApproved": false,
     "signedIosBuildTested": false,
     "signedAndroidBuildTested": false,
     "reviewerAccessVerified": true,
-    "storeScreenshotsAndDeclarationsApproved": false
+    "storeScreenshotsAndDeclarationsApproved": true
   },
   "evidence": {
     "updated": "2026-11-01",
@@ -44,7 +44,10 @@
       "jobId": "job_719b0fc1ee3a4d2190f480b82121b2d2",
       "result": "HCP accepted a zero-dollar Test Tester job; readback retained referral, company, and technician references and the correct Indianapolis timestamp. Its schedule was removed, and readback confirmed no employee assignments. Test customer/job remain labeled TEST ONLY - DO NOT DISPATCH.",
       "productionAppRecords": "Unchanged: one technician, zero referrals, zero sticker requests, booking paused. The separate QA ledger did not create a payable production reward.",
-      "limitations": "Live HCP completion and duplicate replay were not tested. Initial harness stopped at an equivalent timestamp string assertion (Z vs .000Z); a subsequent comparison of the instants passed without creating another job.",
+      "completionVerification": "Owner signed into HCP, then job #1144 was finished using browser DOM controls with Notify customer unchecked. Live GET /jobs returned complete unrated. The deployed completion-sync code changed the isolated ledger referral to earned, exactly 2500 cents; repeat synchronization did not duplicate it. Replaying the retained request returned the same job ID with no provider write. Undo Finish restored needs scheduling, and synchronization moved the reward back to pending with earned and paid totals both zero.",
+      "completionScope": "The isolated QA ledger was reconstructed from the retained successful booking input/result. Production app records were not modified. Native authentication and the production HTTP transaction path remain separate checks.",
+      "limitations": "Initial harness stopped at an equivalent timestamp string assertion (Z vs .000Z); a subsequent comparison of the instants passed without creating another job. No real delivery or payout occurred.",
+      "completionEvidence": "outputs/google-play-preparation-2026-11-01/hcp-test-job-completed.png",
       "availability": "Owner-authorized Eagleview Court address returned five route options. A fictional address also returned ZIP-based options; availability is not proof of exact-address validation."
     },
     "browserSandboxChecks": {
@@ -53,6 +56,12 @@
       "passed": ["pending membership blocks booking", "owner approval enables booking", "booking preserves technician and company attribution", "simulated completion credits 2500 cents", "dummy payout destination saves", "simulated payment reference moves reward to paid without sending money", "free 50-sticker request preserves artwork version", "owner processing and fulfillment updates", "new company appears without code changes", "returning account retains original company from another company page", "paused company blocks booking", "company reactivation", "owner export contains five companies, one technician, one referral and one order without session tokens"],
       "limitations": "All account, reward, fulfillment and completion records in this run were isolated fixtures. Provider completion was simulated, and no real money, texts or shipments were sent. Browser evidence does not verify native Android runtime behavior.",
       "evidenceImage": "outputs/google-play-preparation-2026-11-01/browser-qa-completed-ledger.png"
+    },
+    "stickerOrderingControls": {
+      "checked": "2026-11-01",
+      "result": "Server accepts free requests only for an active approved company member and that company's current approved design ID. Requests retain their original design version. Local browser checks covered request creation, owner processing, fulfillment, and zero printing/shipping price; automated tests cover wrong-company/design and duplicate requests.",
+      "contentWorkflow": "Owner explicitly deferred test artwork and will manually create and upload each actual company's design. Company content is managed server-side. There are no approved live designs or live sticker orders, so real fulfillment remains unavailable until the owner uploads approved artwork.",
+      "gateChange": "Replaces the global printArtworkAndQrAttributionApproved submission gate with verified ordering controls. Individual print/QR approval remains required per uploaded design; future company artwork is content and does not require a new native build. No test artwork was approved in production."
     },
     "reviewerAccess": {
       "checked": "2026-11-01",
@@ -67,10 +76,12 @@
       "developerAccountId": "9078068141318477297",
       "appId": "4976444591082636366",
       "package": "com.simplysalt.partners",
-      "status": "Listing, declarations, and signed Android 1.0 (1) saved as pending changes; no release submitted",
+      "status": "Production listing, declarations and release remain unsubmitted. Signed Android 1.0 (1) was published to the private internal-testing track only; not reviewed or publicly launched.",
       "countries": ["United States"],
       "buildCheckRun": "https://github.com/evanwalker55/salt-partners/actions/runs/41352677603",
-      "androidUploadSha256": "2f403dfd21a330c4ad9c0e8ca35ab64e836866eb150837c41ee20b0ed04f4a53"
+      "androidUploadSha256": "2f403dfd21a330c4ad9c0e8ca35ab64e836866eb150837c41ee20b0ed04f4a53",
+      "internalTest": { "trackId": "4701464908151065210", "release": "1.0 (1) - private Android test", "published": true, "reviewed": false, "prelaunchReport": "No report available yet; native runtime verification remains pending", "testerList": "Simply Salt owner testing - one owner business Google account", "optInUrl": "https://play.google.com/apps/internaltest/4701464908151065210", "evidenceImage": "outputs/google-play-preparation-2026-11-01/google-internal-test-published.png" },
+      "listingReview": "Technical review complete: four unmodified Android sample screenshots and the icon/feature graphic were inspected; the stale booking screenshot was excluded. The saved US English Business listing, 18+ audience, cash-reward content rating, reward-feature disclosure, no-ads/AD_ID declarations, reviewer sample instructions, support/deletion URLs and source-audited Data safety answers match the prepared app. Owner business-rule confirmation remains a separate privacy/reward gate."
     },
     "apple": {
       "enrollmentId": "84833RHTX2",

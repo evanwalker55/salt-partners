@@ -25,6 +25,8 @@ test('platform choice cannot waive shared checks, Android signing, or owner auth
   assert.deepEqual(new Set(releaseBlockers(approval, 'android')), new Set(['realBookingAndCompletionPassed', 'signedAndroidBuildTested', 'ownerApprovedSubmission']));
   delete approval.requirements.privacyAndRewardTermsApproved;
   assert.ok(releaseBlockers(approval, 'android').includes('privacyAndRewardTermsApproved'));
+  delete approval.requirements.stickerOrderingControlsVerified;
+  assert.ok(releaseBlockers(approval, 'android').includes('stickerOrderingControlsVerified'));
 });
 
 test('unverified accounts, missing evidence, new gates, and invalid platforms fail closed', () => {

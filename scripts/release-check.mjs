@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 const sharedRequirements = [
   'permanentBackendConfirmed', 'legacyLedgerReconciled', 'realPhoneVerificationPassed',
   'realAccountRecoveryPassed', 'realBookingAndCompletionPassed',
-  'printArtworkAndQrAttributionApproved', 'privacyAndRewardTermsApproved',
+  'stickerOrderingControlsVerified', 'privacyAndRewardTermsApproved',
   'reviewerAccessVerified', 'storeScreenshotsAndDeclarationsApproved'
 ];
 
