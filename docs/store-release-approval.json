@@ -14,14 +14,20 @@
     "realAccountRecoveryPassed": true,
     "realBookingAndCompletionPassed": true,
     "stickerOrderingControlsVerified": true,
-    "privacyAndRewardTermsApproved": false,
+    "privacyAndRewardTermsApproved": true,
     "signedIosBuildTested": false,
     "signedAndroidBuildTested": false,
     "reviewerAccessVerified": true,
     "storeScreenshotsAndDeclarationsApproved": true
   },
   "evidence": {
-    "updated": "2026-11-01",
+    "updated": "2026-11-02",
+    "programRulesApproval": {
+      "date": "2026-11-02",
+      "source": "Owner directly answered Yes—those rules are correct in this chat",
+      "approved": ["25 USD to the individual technician per eligible completed referral", "Owner sends payouts manually through Venmo, Zelle or Apple Cash", "Approved partnership stickers and standard shipping are free", "Account deletion retains only records needed to settle outstanding deliveries, rewards or shipments"],
+      "scope": "Confirms the intended operations described in the existing partner terms and privacy policy; no policy rewrite or additional enrollment agreement is needed."
+    },
     "phoneVerification": {
       "source": "Live production web-app sign-in test with the owner's expressly authorized mobile number on November 1, 2026",
       "result": "Owner received the six-digit Twilio Verify code; the app accepted it and displayed Your phone is verified. Account setup remained available after a full page refresh.",
@@ -76,12 +82,13 @@
       "developerAccountId": "9078068141318477297",
       "appId": "4976444591082636366",
       "package": "com.simplysalt.partners",
-      "status": "Production listing, declarations and release remain unsubmitted. Signed Android 1.0 (1) was published to the private internal-testing track only; not reviewed or publicly launched.",
+      "status": "Private closed Alpha test, listing and declarations submitted on November 2; console shows Changes in review with quick checks running before review. Unsent production rollout withdrawn to exclude public launch; signed bundle remains in library and internal test remains active. No production binary submitted or publicly launched.",
       "countries": ["United States"],
       "buildCheckRun": "https://github.com/evanwalker55/salt-partners/actions/runs/41352677603",
       "androidUploadSha256": "2f403dfd21a330c4ad9c0e8ca35ab64e836866eb150837c41ee20b0ed04f4a53",
       "internalTest": { "trackId": "4701464908151065210", "release": "1.0 (1) - private Android test", "published": true, "trackActive": true, "reviewed": false, "prelaunchReport": "No report available yet; native runtime verification remains pending", "testerList": "Simply Salt owner testing - one owner business Google account", "testerCount": 1, "optInUrl": "https://play.google.com/apps/internaltest/4701464908151065210", "evidenceImage": "outputs/google-play-preparation-2026-11-01/google-internal-test-active.png" },
-      "listingReview": "Technical review complete: four unmodified Android sample screenshots and the icon/feature graphic were inspected; the stale booking screenshot was excluded. The saved US English Business listing, 18+ audience, cash-reward content rating, reward-feature disclosure, no-ads/AD_ID declarations, reviewer sample instructions, support/deletion URLs and source-audited Data safety answers match the prepared app. Owner business-rule confirmation remains a separate privacy/reward gate."
+      "closedTest": { "trackId": "4700949629012591430", "release": "1.0 (1) - closed Android validation", "submitted": "2026-11-02", "status": "Changes in review; quick checks running before Google review", "testerList": "Simply Salt owner testing", "testerCount": 1, "scope": "Same accepted signed version 1.0 code 1; twelve changes sent include closed test, listing/declarations and United States country setting. Public production binary rollout excluded by withdrawing unsent release. No device report or approval yet.", "productionPreparation": { "withdrawnReleaseName": "1.0 (1) — initial partner release", "retainedBundleVersionCode": 1, "retainedReleaseNotes": "Initial release for participating Simply Salt partner technicians. Refer customers for salt delivery, follow referral rewards, save payout destinations, and request company partnership stickers.", "nextStep": "After Android runtime verification, prepare production release from retained library bundle; do not submit it merely because the closed test is approved." }, "evidenceImage": "outputs/google-play-preparation-2026-11-01/google-closed-test-submitted-2026-11-02.png" },
+      "listingReview": "Technical review complete: four unmodified Android sample screenshots and the icon/feature graphic were inspected; the stale booking screenshot was excluded. The US English Business listing, 18+ audience, cash-reward content rating, reward-feature disclosure, no-ads/AD_ID declarations, reviewer sample instructions, support/deletion URLs and source-audited Data safety answers match the prepared app. Owner business-rule confirmation passed November 2. Submitted with the private closed test; Google approval remains pending."
     },
     "apple": {
       "enrollmentId": "84833RHTX2",
