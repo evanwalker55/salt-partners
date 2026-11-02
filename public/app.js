@@ -30,7 +30,11 @@ async function api(path, body, method = body ? 'POST' : 'GET') {
   const response = await fetchWithTimeout(apiBase + path, { method, credentials: 'include', headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(native ? { 'X-Salt-Client': 'native' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
   let data;
   try { data = await response.json(); } catch { throw new Error('The service could not respond. Please try again shortly.'); }
-  if (!response.ok) { const error = new Error(data.error || 'Please try again.'); error.status = response.status; throw error; }
+  if (!response.ok) {
+    const error = new Error(data.error || 'Please try again.'); error.status = response.status;
+    if (error.status === 401 && me?.profile) requireSignIn();
+    throw error;
+  }
   return data;
 }
 function el(tag, content, className) {
@@ -53,12 +57,7 @@ async function run(formOrButton, target, action) {
   catch (error) {
     const message = ['TimeoutError', 'AbortError', 'TypeError'].includes(error.name) ? 'The connection was interrupted. Try again using this same request; do not start a duplicate booking.' : error.message;
     status(target, message, true);
-    if (error.status === 401) {
-      clearPrivateView();
-      renderWelcome(selectedCompany);
-      show('welcome');
-      status('auth-status', 'Your session expired. Sign in again to continue.', true);
-    }
+    if (error.status === 401) requireSignIn();
   } finally { button.disabled = false; button.textContent = original; formOrButton.removeAttribute('aria-busy'); }
 }
 function clearPrivateView() {
@@ -71,6 +70,13 @@ function clearPrivateView() {
   me = null; quote = null; chosen = null; bookingId = requestId(); orderId = requestId();
   sessionStorage.removeItem('salt_invite'); invite = '';
   $('phone-form').hidden = false; $('code-form').hidden = true;
+}
+function requireSignIn() {
+  clearPrivateView();
+  reauthView = null;
+  renderWelcome(selectedCompany);
+  show('welcome');
+  status('auth-status', 'Your session expired. Sign in again to continue.', true);
 }
 function show(view) {
   currentView = view;
