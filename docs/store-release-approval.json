@@ -38,6 +38,22 @@
       "result": "Authenticated GET /company returned Simply Salt; its ID matched the configured HCP_COMPANY_ID.",
       "checked": "2026-11-01"
     },
+    "housecallProBookingIntegration": {
+      "checked": "2026-11-01",
+      "source": "Deployed d8af9c0 handler/providers exercised with a private memory ledger and live HCP API; owner authorized Test Tester with fictional details",
+      "jobId": "job_719b0fc1ee3a4d2190f480b82121b2d2",
+      "result": "HCP accepted a zero-dollar Test Tester job; readback retained referral, company, and technician references and the correct Indianapolis timestamp. Its schedule was removed, and readback confirmed no employee assignments. Test customer/job remain labeled TEST ONLY - DO NOT DISPATCH.",
+      "productionAppRecords": "Unchanged: one technician, zero referrals, zero sticker requests, booking paused. The separate QA ledger did not create a payable production reward.",
+      "limitations": "Live HCP completion and duplicate replay were not tested. Initial harness stopped at an equivalent timestamp string assertion (Z vs .000Z); a subsequent comparison of the instants passed without creating another job.",
+      "availability": "Owner-authorized Eagleview Court address returned five route options. A fictional address also returned ZIP-based options; availability is not proof of exact-address validation."
+    },
+    "browserSandboxChecks": {
+      "checked": "2026-11-01",
+      "source": "Clean d8af9c0 local sandbox, browser DOM controls only, 390 x 844 viewport; no desktop cursor control",
+      "passed": ["pending membership blocks booking", "owner approval enables booking", "booking preserves technician and company attribution", "simulated completion credits 2500 cents", "dummy payout destination saves", "simulated payment reference moves reward to paid without sending money", "free 50-sticker request preserves artwork version", "owner processing and fulfillment updates", "new company appears without code changes", "returning account retains original company from another company page", "paused company blocks booking", "company reactivation", "owner export contains five companies, one technician, one referral and one order without session tokens"],
+      "limitations": "All account, reward, fulfillment and completion records in this run were isolated fixtures. Provider completion was simulated, and no real money, texts or shipments were sent. Browser evidence does not verify native Android runtime behavior.",
+      "evidenceImage": "outputs/google-play-preparation-2026-11-01/browser-qa-completed-ledger.png"
+    },
     "reviewerAccess": {
       "checked": "2026-11-01",
       "result": "From the signed-out public gallery, Explore sample workspace opened without SMS, an account, or an invitation. Completed a sample booking and a sample 50-sticker request showing $0 due; exiting returned to the public gallery and cleared the sample view.",
