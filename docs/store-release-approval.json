@@ -80,7 +80,7 @@
       "countries": ["United States"],
       "buildCheckRun": "https://github.com/evanwalker55/salt-partners/actions/runs/41352677603",
       "androidUploadSha256": "2f403dfd21a330c4ad9c0e8ca35ab64e836866eb150837c41ee20b0ed04f4a53",
-      "internalTest": { "trackId": "4701464908151065210", "release": "1.0 (1) - private Android test", "published": true, "reviewed": false, "prelaunchReport": "No report available yet; native runtime verification remains pending", "testerList": "Simply Salt owner testing - one owner business Google account", "optInUrl": "https://play.google.com/apps/internaltest/4701464908151065210", "evidenceImage": "outputs/google-play-preparation-2026-11-01/google-internal-test-published.png" },
+      "internalTest": { "trackId": "4701464908151065210", "release": "1.0 (1) - private Android test", "published": true, "trackActive": true, "reviewed": false, "prelaunchReport": "No report available yet; native runtime verification remains pending", "testerList": "Simply Salt owner testing - one owner business Google account", "testerCount": 1, "optInUrl": "https://play.google.com/apps/internaltest/4701464908151065210", "evidenceImage": "outputs/google-play-preparation-2026-11-01/google-internal-test-active.png" },
       "listingReview": "Technical review complete: four unmodified Android sample screenshots and the icon/feature graphic were inspected; the stale booking screenshot was excluded. The saved US English Business listing, 18+ audience, cash-reward content rating, reward-feature disclosure, no-ads/AD_ID declarations, reviewer sample instructions, support/deletion URLs and source-audited Data safety answers match the prepared app. Owner business-rule confirmation remains a separate privacy/reward gate."
     },
     "apple": {
