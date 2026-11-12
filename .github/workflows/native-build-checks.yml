@@ -14,6 +14,11 @@ on:
       - package-lock.json
       - capacitor.config.json
   workflow_dispatch:
+    inputs:
+      ios_store_upload:
+        description: Build, sign, validate, and upload the current iOS candidate to App Store Connect
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -161,3 +166,102 @@ jobs:
           path: |
             ${{ runner.temp }}/ios-first-launch.png
             ${{ runner.temp }}/ios-simulator-build.log
+
+  ios-store:
+    name: Sign and upload iOS candidate
+    if: github.event_name == 'workflow_dispatch' && inputs.ios_store_upload
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ea1f8f0e2f0e9cbfb6a8be9c692a50807b61116e
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Check signing inputs
+        env:
+          P12: ${{ secrets.SALT_IOS_DISTRIBUTION_P12 }}
+          P12_PASSWORD: ${{ secrets.SALT_IOS_P12_PASSWORD }}
+          PROFILE: ${{ secrets.SALT_IOS_PROVISIONING_PROFILE }}
+          API_KEY: ${{ secrets.SALT_APP_STORE_CONNECT_KEY }}
+          API_KEY_ID: ${{ secrets.SALT_APP_STORE_CONNECT_KEY_ID }}
+          API_ISSUER: ${{ secrets.SALT_APP_STORE_CONNECT_ISSUER }}
+        run: |
+          set -euo pipefail
+          for input in P12 P12_PASSWORD PROFILE API_KEY API_KEY_ID API_ISSUER; do
+            test -n "${!input}" || { echo "Missing release secret: $input"; exit 1; }
+          done
+      - name: Select Xcode 26
+        run: |
+          set -euo pipefail
+          for candidate in /Applications/Xcode_26*.app; do
+            if [ -d "$candidate" ]; then
+              sudo xcode-select -s "$candidate/Contents/Developer"
+              break
+            fi
+          done
+          xcodebuild -version
+      - run: npm ci
+      - run: npm test
+      - run: npm run native:sync
+      - name: Import signing material and export app
+        env:
+          P12: ${{ secrets.SALT_IOS_DISTRIBUTION_P12 }}
+          P12_PASSWORD: ${{ secrets.SALT_IOS_P12_PASSWORD }}
+          PROFILE: ${{ secrets.SALT_IOS_PROVISIONING_PROFILE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          SIGN_DIR="$RUNNER_TEMP/salt-signing"
+          mkdir -p "$SIGN_DIR" "$HOME/Library/MobileDevice/Provisioning Profiles"
+          printf '%s' "$P12" | base64 --decode > "$SIGN_DIR/distribution.p12"
+          printf '%s' "$PROFILE" | base64 --decode > "$SIGN_DIR/profile.mobileprovision"
+          security cms -D -i "$SIGN_DIR/profile.mobileprovision" > "$SIGN_DIR/profile.plist"
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print UUID' "$SIGN_DIR/profile.plist")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print Name' "$SIGN_DIR/profile.plist")
+          cp "$SIGN_DIR/profile.mobileprovision" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 32)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$SIGN_DIR/release.keychain-db"
+          security set-keychain-settings -lut 21600 "$SIGN_DIR/release.keychain-db"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$SIGN_DIR/release.keychain-db"
+          security import "$SIGN_DIR/distribution.p12" -k "$SIGN_DIR/release.keychain-db" -P "$P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$KEYCHAIN_PASSWORD" "$SIGN_DIR/release.keychain-db" > /dev/null
+          security list-keychains -d user -s "$SIGN_DIR/release.keychain-db" "$HOME/Library/Keychains/login.keychain-db"
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/SaltPartners-signed.xcarchive" DEVELOPMENT_TEAM=7A2A77UZMU CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" archive > "$RUNNER_TEMP/ios-signed-build.log" 2>&1 || { tail -n 100 "$RUNNER_TEMP/ios-signed-build.log"; exit 1; }
+          python3 - "$PROFILE_NAME" "$SIGN_DIR/export.plist" <<'PY'
+          import plistlib,sys
+          data={'method':'app-store-connect','destination':'export','teamID':'7A2A77UZMU','signingStyle':'manual','signingCertificate':'Apple Distribution','provisioningProfiles':{'com.simplysalt.partners':sys.argv[1]},'manageAppVersionAndBuildNumber':False,'uploadSymbols':True}
+          with open(sys.argv[2],'wb') as stream: plistlib.dump(data,stream)
+          PY
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/SaltPartners-signed.xcarchive" -exportPath "$RUNNER_TEMP/salt-export" -exportOptionsPlist "$SIGN_DIR/export.plist" > "$RUNNER_TEMP/ios-export.log" 2>&1 || { tail -n 100 "$RUNNER_TEMP/ios-export.log"; exit 1; }
+          codesign --verify --deep --strict "$RUNNER_TEMP/SaltPartners-signed.xcarchive/Products/Applications/App.app"
+      - name: Validate and upload to App Store Connect
+        env:
+          API_KEY: ${{ secrets.SALT_APP_STORE_CONNECT_KEY }}
+          API_KEY_ID: ${{ secrets.SALT_APP_STORE_CONNECT_KEY_ID }}
+          API_ISSUER: ${{ secrets.SALT_APP_STORE_CONNECT_ISSUER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$HOME/.private_keys"
+          printf '%s' "$API_KEY" | base64 --decode > "$HOME/.private_keys/AuthKey_$API_KEY_ID.p8"
+          IPA=$(find "$RUNNER_TEMP/salt-export" -maxdepth 1 -name '*.ipa' -print -quit)
+          test -n "$IPA"
+          xcrun altool --validate-app -f "$IPA" -t ios --apiKey "$API_KEY_ID" --apiIssuer "$API_ISSUER"
+          xcrun altool --upload-app -f "$IPA" -t ios --apiKey "$API_KEY_ID" --apiIssuer "$API_ISSUER"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-signed-release-and-log
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/salt-export/*.ipa
+            ${{ runner.temp }}/ios-signed-build.log
+            ${{ runner.temp }}/ios-export.log
+      - name: Remove temporary signing material
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/salt-signing/release.keychain-db" || true
+          rm -rf "$RUNNER_TEMP/salt-signing" "$HOME/.private_keys"
