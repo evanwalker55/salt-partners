@@ -158,6 +158,15 @@ jobs:
           xcrun simctl launch "$DEVICE_ID" com.simplysalt.partners
           sleep 12
           xcrun simctl io "$DEVICE_ID" screenshot "$RUNNER_TEMP/ios-first-launch.png"
+          xcrun simctl shutdown "$DEVICE_ID"
+          IPAD_ID="$(xcrun simctl list devices available -j | python3 -c 'import json,sys; data=json.load(sys.stdin); matches=[d["udid"] for runtime,devices in data["devices"].items() if ".iOS-" in runtime for d in devices if d.get("isAvailable") and d["name"].startswith("iPad") and "13" in d["name"]]; print(matches[0] if matches else "")')"
+          test -n "$IPAD_ID"
+          xcrun simctl boot "$IPAD_ID"
+          xcrun simctl bootstatus "$IPAD_ID" -b
+          xcrun simctl install "$IPAD_ID" "$RUNNER_TEMP/ios-simulator/Build/Products/Release-iphonesimulator/App.app"
+          xcrun simctl launch "$IPAD_ID" com.simplysalt.partners
+          sleep 12
+          xcrun simctl io "$IPAD_ID" screenshot "$RUNNER_TEMP/ipad-first-launch.png"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -165,6 +174,7 @@ jobs:
           retention-days: 14
           path: |
             ${{ runner.temp }}/ios-first-launch.png
+            ${{ runner.temp }}/ipad-first-launch.png
             ${{ runner.temp }}/ios-simulator-build.log
 
   ios-store:
